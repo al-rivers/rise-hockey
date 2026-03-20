@@ -1367,7 +1367,7 @@ body {
   </div>
 
   <div class="hero-quote" id="heroQuote">
-    <div class="quote-eyebrow">Morning Fuel — Mar 17</div>
+    <div class="quote-eyebrow" id="quoteEyebrow">Morning Fuel</div>
     <div class="quote-main" id="qText">"The will to win means nothing without the will to prepare."</div>
     <div class="quote-source">
       <span id="qAuthor">— Juma Ikangaa, Marathon Champion</span>
@@ -1454,6 +1454,31 @@ body {
   </div>
 
   <div style="height:16px"></div>
+
+  <!-- Training Program Banner -->
+  <div id="trainingBanner" style="margin:0 16px 14px;display:none">
+    <div style="background:var(--navy2);border:0.5px solid var(--navy3);border-radius:16px;padding:16px;cursor:pointer" onclick="showScreen('screen-cal')">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold)">Today's Training</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.4)">Tap calendar to log →</div>
+      </div>
+      <div style="font-size:16px;font-weight:700;color:#fff" id="todayWorkoutName">Rest Day</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px" id="todayWorkoutPhase"></div>
+    </div>
+  </div>
+
+  <!-- Monthly Benchmark Card -->
+  <div id="monthlyBenchmarkCard" style="margin:0 16px 14px;display:none">
+    <div style="background:var(--gold-light);border:1px solid var(--gold);border-radius:16px;padding:16px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold2);margin-bottom:8px" id="benchmarkMonthLabel">This Month</div>
+      <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px" id="benchmarkPhaseLabel"></div>
+      <div id="benchmarkGoals" style="margin-bottom:10px"></div>
+      <div id="schoolNote" style="display:none;background:rgba(10,22,40,0.06);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--navy2);line-height:1.6">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--navy);margin-bottom:4px">📚 School Focus</div>
+        <div id="schoolNoteText"></div>
+      </div>
+    </div>
+  </div>
 
   <!-- Install App button — always visible when not in standalone mode -->
   <div id="installRow" style="padding:0 16px 16px">
@@ -1921,6 +1946,21 @@ body {
   </div>
 </div>
 
+<!-- ═══════ WORKOUT MODAL ═══════ -->
+<div id="workoutModal" class="overlay" onclick="if(event.target===this)closeWorkoutModal()">
+  <div class="sheet" style="max-height:90vh">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head" style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div class="sheet-title">Today's Training</div>
+        <div class="sheet-sub" id="workoutModalDate"></div>
+      </div>
+      <button onclick="closeWorkoutModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);padding:4px 8px">&times;</button>
+    </div>
+    <div id="workoutModalContent" style="overflow-y:auto;max-height:calc(90vh - 80px)"></div>
+  </div>
+</div>
+
 <!-- ═══════ BOTTOM NAV ═══════ -->
 <!-- PWA Install Banner -->
 <div id="installBanner" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:388px;background:var(--navy2);border:1.5px solid var(--gold);border-radius:16px;padding:14px 16px;z-index:150;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,0.4)">
@@ -2339,12 +2379,46 @@ function updateHomeStats() {
   const { journalEntries, postureScans } = loadData();
   const streak = calcStreak(journalEntries);
   const avgConf = calcAvgConfidence(journalEntries);
-  const lastPosture = postureScans.length ? postureScans[0].overallScore + '%' : '—';
+  const lastPosture = postureScans.length ? postureScans[0].overallScore + '%' : '\u2014';
 
   document.getElementById('homeStreak').textContent = streak;
-  document.getElementById('topStreakBadge').textContent = '🔥 ' + streak;
-  document.getElementById('homeConfScore').textContent = avgConf !== null ? avgConf : '—';
+  document.getElementById('topStreakBadge').textContent = '\uD83D\uDD25 ' + streak;
+  document.getElementById('homeConfScore').textContent = avgConf !== null ? avgConf : '\u2014';
   document.getElementById('homePosture').textContent = lastPosture;
+
+  // Today's training program
+  var todayStr = localDateStr();
+  var todayWorkout = getWorkoutForDate(todayStr);
+  var banner = document.getElementById('trainingBanner');
+  if (todayWorkout && todayWorkout.template) {
+    banner.style.display = 'block';
+    document.getElementById('todayWorkoutName').textContent = todayWorkout.template.name;
+    var phInfo = TRAINING_PHASES.find(function(p) { return p.phase === todayWorkout.template.phase; });
+    document.getElementById('todayWorkoutPhase').textContent = 'Phase ' + todayWorkout.template.phase + ' \u00b7 Week ' + todayWorkout.weekNum + (phInfo ? ' \u00b7 ' + phInfo.name : '');
+  } else {
+    banner.style.display = 'block';
+    document.getElementById('todayWorkoutName').textContent = 'Rest Day \u2014 Recover & Stretch';
+    document.getElementById('todayWorkoutPhase').textContent = '10 min mobility work recommended';
+  }
+
+  // Monthly benchmark
+  var benchmark = getMonthlySummary();
+  var bmCard = document.getElementById('monthlyBenchmarkCard');
+  if (benchmark) {
+    bmCard.style.display = 'block';
+    document.getElementById('benchmarkMonthLabel').textContent = benchmark.month + ' Goals';
+    document.getElementById('benchmarkPhaseLabel').textContent = benchmark.phase;
+    var goalsHtml = benchmark.goals.map(function(g) {
+      return '<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:5px"><span style="color:var(--gold);font-size:14px;flex-shrink:0">\u25b6</span><span style="font-size:12px;color:var(--navy2);line-height:1.5">' + g + '</span></div>';
+    }).join('');
+    document.getElementById('benchmarkGoals').innerHTML = goalsHtml;
+    if (benchmark.school) {
+      document.getElementById('schoolNote').style.display = 'block';
+      document.getElementById('schoolNoteText').textContent = benchmark.school;
+    }
+  } else {
+    bmCard.style.display = 'none';
+  }
 }
 
 // ─── EVENTS (loaded from localStorage) ───
@@ -2476,10 +2550,19 @@ function renderCalendar() {
     const hasGame = events.some(e => e.date === dateStr && e.type === 'game');
     const hasEvent = events.some(e => e.date === dateStr);
     const isToday = dateStr === todayStr;
+    const workout = getWorkoutForDate(dateStr);
+    const hasWorkout = workout !== null;
 
     const el = document.createElement('div');
-    el.className = 'cal-day' + (isToday ? ' today' : '') + (hasGame ? ' game-day' : (hasEvent ? ' has-event' : ''));
-    el.textContent = d;
+    var cls = 'cal-day';
+    if (isToday) cls += ' today';
+    if (hasGame) cls += ' game-day';
+    else if (hasEvent) cls += ' has-event';
+    el.className = cls;
+    el.innerHTML = d + (hasWorkout ? '<div style="width:4px;height:4px;border-radius:50%;background:var(--teal);position:absolute;top:3px;right:3px"></div>' : '');
+    el.onclick = (function(ds, wk) {
+      return function() { openCalendarDay(ds, wk); };
+    })(dateStr, workout);
     grid.appendChild(el);
   }
 
@@ -2509,6 +2592,104 @@ function renderEventList() {
   });
 }
 
+function openCalendarDay(dateStr, workout) {
+  var dayEvents = events.filter(function(e) { return e.date === dateStr; });
+  var d = new Date(dateStr + 'T12:00:00');
+  var months2 = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var days2 = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var dayLabel = days2[d.getDay()] + ', ' + months2[d.getMonth()] + ' ' + d.getDate();
+
+  if (workout) {
+    openWorkoutScreen(dateStr, dayLabel, workout);
+  } else if (dayEvents.length > 0) {
+    var ev = dayEvents[0];
+    var isPast2 = dateStr < localDateStr();
+    if (ev.type === 'game') {
+      if (isPast2) {
+        document.getElementById('postgameEventName').textContent = ev.name;
+        showScreen('screen-postgame');
+      } else {
+        document.getElementById('pregameEventName').textContent = ev.name;
+        showScreen('screen-pregame');
+      }
+    }
+  }
+}
+
+var currentWorkoutDate = null;
+
+function openWorkoutScreen(dateStr, dayLabel, workout) {
+  currentWorkoutDate = dateStr;
+  var tmpl = workout.template;
+  if (!tmpl) return;
+  var phaseInfo = TRAINING_PHASES.find(function(p) { return p.phase === tmpl.phase; });
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem('rh_workout_' + dateStr) || '{}'); } catch(e) {}
+
+  var html = '<div style="padding:16px">';
+  html += '<div style="background:' + (tmpl.phaseColor || 'var(--navy)') + ';border-radius:12px;padding:14px 16px;margin-bottom:14px;color:#fff">';
+  html += '<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:4px">Phase ' + tmpl.phase + ' \u00b7 Week ' + workout.weekNum + '</div>';
+  html += '<div style="font-size:20px;font-weight:700;margin-bottom:2px">' + tmpl.name + '</div>';
+  if (phaseInfo) html += '<div style="font-size:12px;color:rgba(255,255,255,0.6)">' + phaseInfo.focus + '</div>';
+  html += '</div>';
+
+  html += '<div style="background:var(--ice);border-radius:12px;padding:12px 14px;margin-bottom:14px">';
+  html += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--navy);margin-bottom:4px">Warm-Up</div>';
+  html += '<div style="font-size:13px;color:var(--navy2)">' + tmpl.warmup + '</div></div>';
+
+  html += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px">Exercises</div>';
+  tmpl.exercises.forEach(function(ex, idx) {
+    var sw = saved[idx] || '';
+    html += '<div style="background:var(--surface);border:0.5px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">';
+    html += '<div style="font-size:14px;font-weight:600;color:var(--text);flex:1;margin-right:10px">' + ex.name + '</div>';
+    html += '<div style="font-size:12px;color:var(--gold);font-weight:700;white-space:nowrap">' + ex.sets + ' \xd7 ' + ex.reps + '</div></div>';
+    html += '<div style="font-size:12px;color:var(--muted);margin-bottom:10px">' + ex.notes + '</div>';
+    html += '<div style="display:flex;gap:8px;align-items:center">';
+    html += '<input type="number" placeholder="Weight (lb)" value="' + sw + '" ';
+    html += 'onchange="saveWorkoutWeight(\'' + dateStr + '\',' + idx + ',this.value)" ';
+    html += 'style="width:130px;padding:8px 10px;border:0.5px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);outline:none">';
+    html += '<span style="font-size:12px;color:var(--muted)">lb</span>';
+    if (sw) html += '<span style="font-size:11px;color:var(--teal);font-weight:600">\u2713 Saved</span>';
+    html += '</div></div>';
+  });
+
+  html += '<div style="background:var(--teal-light);border-radius:12px;padding:12px 14px;margin-bottom:16px">';
+  html += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--teal);margin-bottom:4px">Cool-Down</div>';
+  html += '<div style="font-size:13px;color:#0F6E56">' + tmpl.cooldown + '</div></div>';
+
+  var isComp = saved.completed;
+  html += '<button onclick="markWorkoutComplete(\'' + dateStr + '\')" style="width:100%;padding:16px;background:' + (isComp ? 'var(--teal)' : 'var(--gold)') + ';border:none;border-radius:14px;font-size:15px;font-weight:700;color:' + (isComp ? '#fff' : 'var(--navy)') + ';cursor:pointer;font-family:-apple-system,sans-serif;margin-bottom:8px">';
+  html += isComp ? '\u2713 Workout Completed!' : 'Mark Workout Complete';
+  html += '</button>';
+  html += '</div>';
+
+  document.getElementById('workoutModalDate').textContent = dayLabel;
+  document.getElementById('workoutModalContent').innerHTML = html;
+  document.getElementById('workoutModal').classList.add('open');
+}
+
+function saveWorkoutWeight(dateStr, idx, weight) {
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem('rh_workout_' + dateStr) || '{}'); } catch(e) {}
+  saved[idx] = weight;
+  localStorage.setItem('rh_workout_' + dateStr, JSON.stringify(saved));
+}
+
+function markWorkoutComplete(dateStr) {
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem('rh_workout_' + dateStr) || '{}'); } catch(e) {}
+  saved.completed = true; saved.completedAt = Date.now();
+  localStorage.setItem('rh_workout_' + dateStr, JSON.stringify(saved));
+  document.getElementById('workoutModal').classList.remove('open');
+  updateHomeStats();
+  alert('Workout logged! Consistency wins. See you tomorrow, Aleks. \ud83d\udcaa');
+}
+
+function closeWorkoutModal() {
+  document.getElementById('workoutModal').classList.remove('open');
+}
+
 function openEventOptions(id) {
   const ev = events.find(e => e.id === id);
   if (!ev) return;
@@ -2517,15 +2698,15 @@ function openEventOptions(id) {
 
   if (ev.type === 'game') {
     const action = isPast
-      ? confirm(`${ev.name}\n${ev.date} · ${formatTime(ev.time)}\n\nOpen Post-Game check-in for this event?\n\nCancel to delete this event.`)
-      : confirm(`${ev.name}\n${ev.date} · ${formatTime(ev.time)}\n\nOpen Pre-Game prep for this event?\n\nCancel to delete this event.`);
+      ? confirm(`${ev.name}\n${ev.date} \u00b7 ${formatTime(ev.time)}\n\nOpen Post-Game check-in for this event?\n\nCancel to delete this event.`)
+      : confirm(`${ev.name}\n${ev.date} \u00b7 ${formatTime(ev.time)}\n\nOpen Pre-Game prep for this event?\n\nCancel to delete this event.`);
 
     if (action) {
       if (isPast) {
         document.getElementById('postgameEventName').textContent = ev.name;
         showScreen('screen-postgame');
       } else {
-        showScreen('screen-pregame'); // initPreGame() fires via showScreen
+        showScreen('screen-pregame');
       }
     } else {
       if (confirm(`Delete "${ev.name}"?`)) {
@@ -3707,6 +3888,337 @@ function getActiveQuotes() {
   return QUOTES.concat(fresh);
 }
 
+// ─── 30-WEEK OFF-SEASON TRAINING PROGRAM ───
+// Aleks Kikuchi | LHD | DOB Jan 2012 | 5'2" 105lbs | U15B -> U15A target
+// Start: March 1, 2026 | End: September 26, 2026 (tryout week)
+// Available equipment: barbell, dumbbell, trap bar, EZ bar, chin/dip station
+
+var PROGRAM_START = new Date('2026-03-01');
+
+var TRAINING_PHASES = [
+  { phase: 1, name: 'Foundation', weeks: '1-4',  dateRange: 'Mar 1 — Mar 31',    focus: 'Habit building, movement patterns, 2x/week gym. Technique over load.', color: 'var(--teal)' },
+  { phase: 2, name: 'Atlantic Season', weeks: '5-12', dateRange: 'Apr 1 — May 31', focus: "Perform, don't build. 2x/week max. Games take priority over gym.", color: 'var(--navy)' },
+  { phase: 3, name: 'Transition Ramp', weeks: '13-15', dateRange: 'Jun 1 — Jun 20', focus: 'Increase to 3x/week, ramp nutrition, introduce heavier compound loads.', color: 'var(--gold)' },
+  { phase: 4, name: 'Summer Build', weeks: '16-25', dateRange: 'Jun 21 — Aug 31',   focus: '7am gym before Sackawa. Primary muscle gain block. Log every session.', color: 'var(--red)' },
+  { phase: 5, name: 'Sharpening', weeks: '26-30', dateRange: 'Sep 1 — Sep 26',    focus: 'Express the gains. Reduced volume. Tryout week Sep 21–26.', color: '#6B4FBB' }
+];
+
+// PHASE 1 & 2: Sessions A and B (Mon/Wed, 2x/week)
+// PHASE 3+: Sessions A, B, C (Mon/Wed/Fri, 3x/week)
+var WORKOUT_TEMPLATES = {
+
+  // ─── PHASE 1 (March) & PHASE 2 (Apr-May): 2x/week ───
+  P1A: {
+    name: 'Session A — Squat / Push', phase: 1, phaseColor: 'var(--teal)',
+    warmup: '5 min easy bike or jog + 10 bodyweight squats + arm circles',
+    exercises: [
+      { name: 'Goblet Squat (DB)', sets: 3, reps: '10', notes: 'Start 20-25 lbs. Full depth, chest up, knees track toes. This is the squat pattern — learn it perfectly.' },
+      { name: 'Romanian Deadlift (Trap Bar or BB)', sets: 3, reps: '10', notes: 'Light load. Hinge at hips, NOT a squat. Big chest, soft knees, bar stays close to legs.' },
+      { name: 'DB Bench Press', sets: 3, reps: '10-12', notes: 'Touch chest, full extension. No bouncing. Spotter helpful.' },
+      { name: 'Barbell Overhead Press', sets: 3, reps: '8', notes: 'Standing, brace core. Teaches shoulder stability critical for board battles.' },
+      { name: 'Single-Leg Glute Bridge', sets: 3, reps: '12 each', notes: 'Bodyweight or light DB on hip. Drive through heel, posterior chain activation.' },
+      { name: 'Plank Hold', sets: 3, reps: '30-40 sec', notes: 'Neutral spine, squeeze glutes. No sagging hips.' }
+    ],
+    cooldown: 'Hip flexor stretch 45s each side + quad stretch 30s each'
+  },
+
+  P1B: {
+    name: 'Session B — Hinge / Pull', phase: 1, phaseColor: 'var(--teal)',
+    warmup: '5 min bike + band pull-aparts x10 + dead hang 20s',
+    exercises: [
+      { name: 'Trap Bar Deadlift', sets: 3, reps: '8', notes: 'Technique only — light to moderate. Learn the hip hinge perfectly. This is your most important lift.' },
+      { name: 'Chin-Up (assisted if needed)', sets: 3, reps: '5-8', notes: 'Use dip/chin station. Most important upper body pull for hockey. Full dead hang at bottom.' },
+      { name: 'DB Row (chest supported on bench)', sets: 3, reps: '10 each', notes: 'Squeeze shoulder blade fully at top. Unilateral pulling strength.' },
+      { name: 'EZ Bar Curl', sets: 2, reps: '10', notes: 'Controlled — no swinging. Elbow flexor strength for puck battles.' },
+      { name: 'Lateral Lunge (DB)', sets: 3, reps: '8 each', notes: 'Hockey-specific hip abductor load. Deep into lunge. LHD-specific movement.' },
+      { name: 'Ab Wheel Rollout', sets: 3, reps: '6-8', notes: 'From knees. Controlled return. Core anti-extension — essential for board battles.' }
+    ],
+    cooldown: 'Lat doorframe stretch 30s each + thoracic rotation 10 each side'
+  },
+
+  // Phase 2 uses same sessions with slight progression
+  P2A: {
+    name: 'Session A — Lower / Push', phase: 2, phaseColor: 'var(--navy)',
+    warmup: '5 min bike + activation + light squat warmup sets',
+    exercises: [
+      { name: 'Back Squat (Barbell)', sets: 4, reps: '8', notes: 'Transition from goblet squat by week 2 of April. Build to challenging but NOT grinding weight by May.' },
+      { name: 'Romanian Deadlift (BB)', sets: 3, reps: '10', notes: 'Progressive load each week — add 5 lbs when form is perfect for full set.' },
+      { name: 'Dumbbell Bench Press', sets: 3, reps: '10-12', notes: 'Progress load weekly. Spotter or use safety if going heavy.' },
+      { name: 'Walking Lunge (DB)', sets: 3, reps: '10 each', notes: 'Hockey stride mimicry — slow eccentric. Long stride.' },
+      { name: 'Calf Raise (BB on back)', sets: 3, reps: '15', notes: 'Weighted calf strength for skate push-off power.' },
+      { name: 'Plank Variations', sets: 2, reps: '3 variations', notes: 'Standard 40s + side 30s each + reach 20s. No rest between variations.' }
+    ],
+    cooldown: 'Couch stretch 60s each + hip flexor stretch 45s each'
+  },
+
+  P2B: {
+    name: 'Session B — Upper / Hinge', phase: 2, phaseColor: 'var(--navy)',
+    warmup: 'Band pull-aparts x15 + dead hang 30s + shoulder rotations',
+    exercises: [
+      { name: 'Trap Bar Deadlift', sets: 4, reps: '6', notes: 'Heaviest lift of the week. Add weight when all 6 reps feel controlled. Work toward bodyweight+ by June.' },
+      { name: 'Chin-Up', sets: 3, reps: 'max reps', notes: 'Work toward 8-10 unassisted. Add weight (DB between feet) once 10 is easy.' },
+      { name: 'Barbell Row (bent over)', sets: 3, reps: '10', notes: 'Overhand grip, flat back, row to lower chest. Back thickness.' },
+      { name: 'Barbell Overhead Press', sets: 3, reps: '8', notes: 'Standing, core braced, full lockout overhead.' },
+      { name: 'EZ Bar Curl + Tricep Pushdown (superset)', sets: 3, reps: '10 each', notes: 'Minimal rest between. Arm strength for puck battles.' },
+      { name: 'Nordic Curl (eccentric)', sets: 3, reps: '5-6', notes: 'Partner holds ankles or use dip station foot anchor. CRITICAL for hamstring health.' }
+    ],
+    cooldown: 'Hamstring stretch 45s each + pigeon pose 60s each'
+  },
+
+  // ─── PHASE 3 (Jun 1-20): 3x/week, ramp ───
+  P3A: {
+    name: 'Session A — Lower / Push', phase: 3, phaseColor: 'var(--gold)',
+    warmup: '5 min bike + glute activation + squat warmup sets',
+    exercises: [
+      { name: 'Back Squat (Barbell)', sets: 4, reps: '8', notes: 'Heavier than May. This is where squat strength starts to build seriously.' },
+      { name: 'Romanian Deadlift (BB)', sets: 3, reps: '10', notes: 'Slow eccentric (3 count down). Feel every rep in the hamstrings.' },
+      { name: 'Dumbbell Bench Press', sets: 3, reps: '10-12', notes: 'Progress load. Full ROM — chest touch at bottom.' },
+      { name: 'Walking Lunge (DB)', sets: 3, reps: '10 each', notes: 'Long stride, slow eccentric. Hockey stride specific.' },
+      { name: 'Barbell Overhead Press', sets: 3, reps: '8-10', notes: 'Standing. Add load from Phase 2.' },
+      { name: 'Weighted Calf Raise', sets: 3, reps: '15', notes: 'Slow controlled. Skate push power.' }
+    ],
+    cooldown: 'Full lower body stretch sequence 5 min'
+  },
+
+  P3B: {
+    name: 'Session B — Hinge / Pull', phase: 3, phaseColor: 'var(--gold)',
+    warmup: 'Band circuit + dead hang 30s + hip hinges x10',
+    exercises: [
+      { name: 'Trap Bar Deadlift', sets: 4, reps: '6', notes: 'Target bodyweight+ by end of June. This is the primary strength indicator.' },
+      { name: 'Weighted Chin-Up', sets: 3, reps: '6-8', notes: 'Add DB between feet when 10 unweighted is easy. King of upper body.' },
+      { name: 'DB Row (chest supported)', sets: 3, reps: '10-12 each', notes: 'Squeeze shoulder blade fully. Back thickness.' },
+      { name: 'Barbell Row (bent over)', sets: 3, reps: '8', notes: 'Overhand, flat back. More volume than Phase 2.' },
+      { name: 'Nordic Curl (eccentric)', sets: 3, reps: '5-6', notes: 'CRITICAL for hamstring health going into summer.' },
+      { name: 'Pallof Press (band from dip station)', sets: 3, reps: '10 each side', notes: 'Rotational core — board battle strength.' }
+    ],
+    cooldown: 'Lat stretch + thoracic rotation 10 each side'
+  },
+
+  P3C: {
+    name: 'Session C — Full Body / Power', phase: 3, phaseColor: 'var(--gold)',
+    warmup: '10 min dynamic warmup + jump prep',
+    exercises: [
+      { name: 'Broad Jump or Box Jump', sets: 3, reps: '5', notes: 'ALWAYS first in session. Explosive intent. Full rest between sets.' },
+      { name: 'Back Squat (lighter, faster)', sets: 3, reps: '8', notes: 'About 70% of Monday weight. Bar speed focus — controlled down, explode up.' },
+      { name: 'Push-Up (weighted — plate on back)', sets: 3, reps: '12-15', notes: 'Builds chest/tricep without equipment. Rest 60s.' },
+      { name: 'Single-Leg RDL (DB)', sets: 3, reps: '8 each', notes: 'Balance + posterior chain. Unilateral work for skating asymmetry.' },
+      { name: 'Dip (bodyweight or weighted)', sets: 3, reps: '8-10', notes: 'Dip station. Add weight when 12 is easy.' },
+      { name: 'Lateral Band Walk', sets: 3, reps: '15 each direction', notes: 'Mini band above knees. Hip abductor — D-zone battle strength.' }
+    ],
+    cooldown: 'Full mobility 10 min'
+  },
+
+  // ─── PHASE 4 (Jun 21 - Aug 31): Summer Build, 7am gym, 3x/week ───
+  P4A: {
+    name: 'Session A — Lower Body / Push (Monday 7am)', phase: 4, phaseColor: 'var(--red)',
+    warmup: '5 min bike or row + glute activation + warmup sets',
+    exercises: [
+      { name: 'Barbell Back Squat', sets: 4, reps: '6-8', notes: 'PRIMARY strength movement. Add 5 lbs when 4×8 is achieved with good form. Rest 2 min. EVERY SET LOGGED.' },
+      { name: 'Romanian Deadlift (BB)', sets: 3, reps: '10', notes: 'Slow eccentric (3 count down). Hip hinge pattern. Rest 90s.' },
+      { name: 'Dumbbell Bench Press', sets: 3, reps: '10-12', notes: 'Full range — chest touch. Progress load weekly. Rest 75s.' },
+      { name: 'Lateral Lunge (DB)', sets: 3, reps: '8 each', notes: 'Hockey-specific hip load. Rest 60s. LHD-specific movement.' },
+      { name: 'Barbell Overhead Press', sets: 3, reps: '8-10', notes: 'Standing, core braced. Rest 75s.' },
+      { name: 'Weighted Calf Raise (BB)', sets: 3, reps: '15', notes: 'Skate push-off power. Slow controlled movement.' },
+      { name: 'Ab Wheel / Rollout', sets: 3, reps: '8-10', notes: 'Core anti-extension. Full rollout from knees, progress to toes by July.' }
+    ],
+    cooldown: 'Couch stretch 60s each + pigeon pose 60s each. Must be done — Sackawa tightens hips severely.'
+  },
+
+  P4B: {
+    name: 'Session B — Hinge / Pull (Wednesday 7am)', phase: 4, phaseColor: 'var(--red)',
+    warmup: 'Band pull-aparts x15 + dead hang 30s + hip hinges',
+    exercises: [
+      { name: 'Trap Bar Deadlift', sets: 4, reps: '5-6', notes: 'HEAVIEST lift of the week. Target bodyweight+ by end of July. Rest 2.5 min. Every rep logged.' },
+      { name: 'Weighted Chin-Up', sets: 3, reps: '6-8', notes: 'Add DB between feet when 10 unweighted is easy. Rest 90s.' },
+      { name: 'DB Row (chest supported)', sets: 3, reps: '10-12 each', notes: 'Squeeze shoulder blade fully. Rest 75s.' },
+      { name: 'Barbell Row (bent over)', sets: 3, reps: '8', notes: 'Overhand, flat back, pull to lower chest. Rest 75s.' },
+      { name: 'Nordic Curl (eccentric)', sets: 3, reps: '5-6', notes: 'Anchor under dip station. CRITICAL for hamstring health at Sackawa.' },
+      { name: 'EZ Bar Curl', sets: 3, reps: '10', notes: 'Controlled, no swing. Rest 60s.' },
+      { name: 'Pallof Press (band from dip station)', sets: 3, reps: '10 each side', notes: 'Rotational core — board battle and D-to-D pass power.' }
+    ],
+    cooldown: 'Lat stretch + thoracic rotation 10 each side + hip flexor 45s each'
+  },
+
+  P4C: {
+    name: 'Session C — Full Body / Power (Friday 7am)', phase: 4, phaseColor: 'var(--red)',
+    warmup: '10 min dynamic warmup + jump activation',
+    exercises: [
+      { name: 'Broad Jump or Box Jump', sets: 3, reps: '5', notes: 'ALWAYS first. Max explosive intent. Full 90s rest between sets. Week 7-9: add trap bar jump.' },
+      { name: 'Barbell Back Squat (lighter, faster)', sets: 3, reps: '6', notes: 'About 70-75% of Monday weight. Bar speed focus — controlled down, explode up. Rest 90s.' },
+      { name: 'Push-Up (weighted — plate on back)', sets: 3, reps: '12-15', notes: 'Builds chest/tricep. Rest 60s.' },
+      { name: 'Single-Leg RDL (DB)', sets: 3, reps: '8 each', notes: 'Balance + posterior chain. Skating asymmetry correction.' },
+      { name: 'Dip (bodyweight or weighted)', sets: 3, reps: '8-10', notes: 'Dip station. Add weight when 12 is easy.' },
+      { name: 'Lateral Band Walk', sets: 3, reps: '15 each direction', notes: 'Mini band above knees. Hip abductor — D-zone battle strength and LHD board work.' },
+      { name: 'Plank Circuit', sets: 3, reps: '3 variations', notes: 'Standard 40s + side 30s each + reach 20s. No rest within round.' }
+    ],
+    cooldown: 'Full mobility 10 min. Sleep big tonight — this is the most demanding training week of your life.'
+  },
+
+  // ─── PHASE 5 (Sep 1-26): Sharpening, 2x/week, taper ───
+  P5A: {
+    name: 'Session A — Lower / Push (45 min)', phase: 5, phaseColor: '#6B4FBB',
+    warmup: '5 min bike + activation + warmup sets',
+    exercises: [
+      { name: 'Barbell Back Squat', sets: 3, reps: '6', notes: 'FEEL GOOD weight. Moderate — you are not building now, you are expressing. Explosive intent.' },
+      { name: 'Romanian Deadlift (BB)', sets: 3, reps: '8', notes: 'Maintain the pattern. Controlled and strong.' },
+      { name: 'Dumbbell Bench Press', sets: 3, reps: '10', notes: 'Maintain strength. Full ROM.' },
+      { name: 'Walking Lunge (DB)', sets: 3, reps: '8 each', notes: 'Legs staying sharp and explosive.' },
+      { name: 'Barbell Overhead Press', sets: 3, reps: '8', notes: 'Shoulder strength maintained.' },
+      { name: 'Plank Hold', sets: 2, reps: '45 sec', notes: 'Core maintenance. Keep it sharp.' }
+    ],
+    cooldown: 'Full stretch 5 min. Ice tomorrow — protect the body.'
+  },
+
+  P5B: {
+    name: 'Session B — Hinge / Pull (45 min)', phase: 5, phaseColor: '#6B4FBB',
+    warmup: 'Band pull-aparts + dead hang + hip activation',
+    exercises: [
+      { name: 'Trap Bar Deadlift', sets: 3, reps: '5', notes: 'Feel powerful. Moderate weight. Last 2 weeks of Sept: reduce to 2 sets.' },
+      { name: 'Chin-Up', sets: 3, reps: 'max reps', notes: 'Show yourself what 30 weeks of work has built. Go for it.' },
+      { name: 'DB Row (chest supported)', sets: 3, reps: '10 each', notes: 'Maintain back strength for battles.' },
+      { name: 'Nordic Curl', sets: 2, reps: '5', notes: 'Hamstring health before tryout ice. Do not skip.' },
+      { name: 'EZ Bar Curl', sets: 2, reps: '10', notes: 'Arm maintenance.' },
+      { name: 'Pallof Press', sets: 2, reps: '10 each', notes: 'Core rotation for D-to-D pass and battles.' }
+    ],
+    cooldown: 'Full body stretch 5 min. You have earned this. Trust the work.'
+  }
+};
+
+// Monthly benchmarks from the actual program document
+var MONTHLY_BENCHMARKS = {
+  '2026-03': {
+    month: 'March 2026', phase: 'Phase 1 — Foundation',
+    goals: [
+      'Gym habit 2x/week established — technique solid on squat and deadlift',
+      'Daily stickhandling routine started (20 min, 5 nights/week)',
+      'Video study habit started (20 min/week, Hockey IQ)',
+      'Sleep schedule fixed — 9:45pm asleep target',
+      'Nutrition consistency: 2,300–2,500 cal/day with daily protein tracking',
+      'Monday morning weigh-in habit: track trend, not daily number'
+    ],
+    school: 'End of Q3 — review all grades now. Identify any at-risk courses before report cards. D1 programs require 2.3+ core GPA for NCAA eligibility. Grade 8 habits set the foundation for Grade 9 which counts.'
+  },
+  '2026-04': {
+    month: 'April 2026', phase: 'Phase 2 — Atlantic Season',
+    goals: [
+      'Target weight: 106–107 lbs (first 1–2 lbs of lean mass)',
+      'Back squat with barbell by week 2 (transitioned from goblet squat)',
+      'Gap drill happening every single ice session without exception',
+      'LHD breakout simulation built into every stickhandling session',
+      'NEVER gym within 24 hours of a game — performance first',
+      'Chocolate milk within 30 min of every hard session'
+    ],
+    school: 'Atlantic season means busy weekends — protect your study time during the week. Math and English are NCAA core courses. Do not let game weekends become an excuse for missed homework.'
+  },
+  '2026-05': {
+    month: 'May 2026', phase: 'Phase 2 — Atlantic Season Finish',
+    goals: [
+      'Target weight: 107–108 lbs',
+      '8+ chin-ups unassisted by end of May',
+      'Trap bar deadlift confident and loading progressively',
+      'Video study: 5 weeks completed, gap control reads visibly improving',
+      'Board battle positioning habit established — arriving first at the puck',
+      'Atlantic season strong finish — compete every shift, coaches watching'
+    ],
+    school: 'June exams approaching. Study schedule should be set NOW — not in the final week. Grade 8 final marks shape your Grade 9 course placement. Top marks open doors.'
+  },
+  '2026-06': {
+    month: 'June 2026', phase: 'Phase 3 (Jun 1–20) + Phase 4 Start',
+    goals: [
+      'Target weight: 108–112 lbs (big jump begins)',
+      'Gym to 3x/week by June 1, 7am sessions starting June 21',
+      'Back squat at approximately bodyweight for 8 reps',
+      '8+ chin-ups, working toward weighted',
+      'Calories up to 2,700–2,800 school days, 2,900–3,100 Sackawa days',
+      'Packed Sackawa lunch prepared by parents every day — this is critical'
+    ],
+    school: 'Grade 8 final exams. Take these seriously — the study habits you build this month carry directly into Grade 9. Grade 9 Math and English are NCAA core courses. Strong finish to Grade 8.'
+  },
+  '2026-07': {
+    month: 'July 2026', phase: 'Phase 4 — Summer Build Peak',
+    goals: [
+      'Target weight: 112–115 lbs',
+      'Back squat 1.1x bodyweight',
+      'Trap bar deadlift 1.2x bodyweight',
+      'Weighted chin-up progressing (DB between feet)',
+      'Backwards skating noticeably more confident',
+      'Board battles improving — arriving first, using shoulder'
+    ],
+    school: 'Summer — great time to get ahead on Grade 9 preview material, especially math. Library access, Khan Academy, online prep. Stay mentally sharp. Smart hockey players do smart things off the ice too.'
+  },
+  '2026-08': {
+    month: 'August 2026', phase: 'Phase 4 — Summer Build Final',
+    goals: [
+      'Target weight: 116–118 lbs',
+      'Back squat 1.25x bodyweight',
+      'Weighted chin-up with 10 lbs added',
+      'Full PRs across all major lifts',
+      'On-ice: winning board battles in summer skates, reads improving',
+      'Week 10 of summer (Aug 23-31): drop to 2 gym sessions, taper begins'
+    ],
+    school: 'Grade 9 starts in September. Review your course schedule now. Talk to your counselor about which courses count as NCAA core courses. First semester GPA sets the tone for the next four years.'
+  },
+  '2026-09': {
+    month: 'September 2026', phase: 'Phase 5 — Sharpening & Tryouts',
+    goals: [
+      'Target weight: 119–121 lbs going into tryouts (120+ lbs goal)',
+      'Gym 2x/week ONLY — expressing strength, not building it',
+      'SLEEP: 9.5–10 hours every night. Phone off at 9:30pm. Non-negotiable.',
+      'Tryout week Sep 21–26: ONE gym session Monday, nothing after that',
+      'Nutrition: full meals 2.5–3 hours before every tryout skate',
+      'Trust the 30 weeks. January 2012 birthday. Show your compete level.'
+    ],
+    school: 'Grade 9 is underway. Attend everything, submit everything. First semester GPA matters for NCAA eligibility tracking. Hockey and school are not competing — elite athletes do both.'
+  }
+};
+
+function getWorkoutForDate(dateStr) {
+  var date = new Date(dateStr + 'T12:00:00');
+  var msPerDay = 86400000;
+  var daysSinceStart = Math.round((date - PROGRAM_START) / msPerDay);
+  // Program: Mar 1 – Sep 26, 2026 (209 days)
+  if (daysSinceStart < 0 || daysSinceStart > 209) return null;
+
+  var weekNum = Math.floor(daysSinceStart / 7) + 1;
+  var dow = date.getDay(); // 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat
+
+  // Phase boundaries matched exactly to document dates:
+  // Phase 1: Mar 1  – Mar 31  (2x/week: Mon A, Wed B)
+  // Phase 2: Apr 1  – May 31  (2x/week: Mon A, Wed B — Atlantic season)
+  // Phase 3: Jun 1  – Jun 20  (3x/week: Mon A, Wed B, Fri C — ramp)
+  // Phase 4: Jun 21 – Aug 31  (3x/week: Mon A, Wed B, Fri C — 7am summer)
+  // Phase 5: Sep 1  – Sep 26  (2x/week: Mon A, Wed B — taper)
+
+  var y = date.getFullYear(), m = date.getMonth() + 1, d2 = date.getDate();
+  var phaseKey, dayKey;
+
+  if (m === 3) {
+    phaseKey = 'P1'; dayKey = dow===1?'A':dow===3?'B':null;
+  } else if (m === 4 || m === 5) {
+    phaseKey = 'P2'; dayKey = dow===1?'A':dow===3?'B':null;
+  } else if (m === 6 && d2 <= 20) {
+    phaseKey = 'P3'; dayKey = dow===1?'A':dow===3?'B':dow===5?'C':null;
+  } else if ((m === 6 && d2 >= 21) || m === 7 || m === 8) {
+    phaseKey = 'P4'; dayKey = dow===1?'A':dow===3?'B':dow===5?'C':null;
+  } else if (m === 9 && d2 <= 26) {
+    phaseKey = 'P5'; dayKey = dow===1?'A':dow===3?'B':null;
+  } else {
+    return null;
+  }
+
+  if (!dayKey) return null;
+  var key = phaseKey + dayKey;
+  var tmpl = WORKOUT_TEMPLATES[key];
+  if (!tmpl) return null;
+  return { key: key, weekNum: weekNum, phase: parseInt(phaseKey[1]), template: tmpl };
+}
+
+function getMonthlySummary() {
+  var now = new Date();
+  var monthKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  return MONTHLY_BENCHMARKS[monthKey] || null;
+}
+
 // ─── INIT ───
 document.addEventListener('DOMContentLoaded', () => {
   // Reload events from localStorage on every launch
@@ -3718,6 +4230,14 @@ document.addEventListener('DOMContentLoaded', () => {
   renderCalendar();
   updateHomeStats();
   updateOnlineStatus();
+
+  // Dynamic date label on home quote
+  var now = new Date();
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var hour = now.getHours();
+  var timeLabel = hour < 12 ? 'Morning Fuel' : hour < 17 ? 'Afternoon Focus' : 'Evening Mindset';
+  var dateLabel = timeLabel + ' \u2014 ' + months[now.getMonth()] + ' ' + now.getDate();
+  document.getElementById('quoteEyebrow').textContent = dateLabel;
 
   var activeQ = getActiveQuotes();
   var dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);

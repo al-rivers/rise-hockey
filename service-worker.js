@@ -1,4 +1,4 @@
-const CACHE = 'rise-hockey-v23';
+const CACHE = 'rise-hockey-v25';
 
 const STATIC = [
   './manifest.json',
