@@ -1,0 +1,4054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Rise Hockey</title>
+<meta name="description" content="Aleks's personal hockey confidence and development app">
+
+<!-- PWA / Install -->
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#0A1628">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="Rise Hockey">
+
+<!-- iOS -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Rise Hockey">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+
+<!-- Favicon -->
+<link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png">
+<link rel="shortcut icon" href="./favicon-32.png">
+
+<!-- All fonts inlined — zero network dependency, fully offline -->
+<style>
+/* Bebas Neue replacement — bold condensed display */
+.bebas, .logo, .page-title, .stat-num, .overall-score, .fw-word,
+.pregame-event, .postgame-event, .sheet-title, .cal-month,
+.result-header-text h3, #overallScore, #homeConfScore, #homeStreak,
+#homePosture, .he-score, .bc-val, .insight-val {
+  font-family: 'Arial Narrow', 'Impact', 'Franklin Gothic Medium', Arial, sans-serif;
+  letter-spacing: 0.04em;
+}
+/* DM Serif Display replacement — elegant serif */
+.quote-main, .blog-title, .blog-cover-title, .screen-title,
+.read-title, .pull-quote p, .blog-body h3, .sheet-title,
+#qText {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: normal;
+}
+/* DM Sans replacement — clean system sans */
+body, button, input, textarea, select {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+               'Helvetica Neue', Arial, sans-serif;
+}
+</style>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ice: #E8F4FD;
+  --ice2: #C8E6FA;
+  --navy: #0A1628;
+  --navy2: #14233E;
+  --navy3: #1E3358;
+  --gold: #F4A623;
+  --gold2: #E8921A;
+  --gold-light: #FEF3DC;
+  --red: #C8302A;
+  --red-light: #FDECEA;
+  --teal: #1D9E75;
+  --teal-light: #E1F5EE;
+  --text: #0A1628;
+  --muted: #5A6A7A;
+  --surface: #FFFFFF;
+  --bg: #F4F7FB;
+  --border: rgba(10,22,40,0.1);
+}
+
+body {
+  background: var(--bg);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#app {
+  max-width: 420px;
+  margin: 0 auto;
+  background: var(--bg);
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-bottom: 80px;
+  isolation: isolate;
+}
+
+/* ── SCREENS ── */
+.screen {
+  display: none;
+  visibility: hidden;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.screen.active {
+  display: block;
+  visibility: visible;
+  height: auto;
+  overflow: visible;
+  pointer-events: auto;
+  animation: fadeIn 0.2s ease;
+  min-height: calc(100vh - 80px);
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ── TOP NAV ── */
+.top-bar {
+  background: var(--navy);
+  padding: 16px 20px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px;
+  letter-spacing: 2px;
+  color: #fff;
+  line-height: 1;
+}
+.logo span { color: var(--gold); }
+
+.top-right { display: flex; align-items: center; gap: 10px; }
+
+.streak-badge {
+  background: var(--gold);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--navy);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.avatar {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: var(--navy3);
+  border: 2px solid var(--gold);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600; color: var(--gold);
+}
+
+/* ── HERO QUOTE ── */
+.hero-quote {
+  background: var(--navy);
+  padding: 22px 20px 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-quote::before {
+  content: '';
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  background: rgba(244,166,35,0.07);
+}
+
+.hero-quote::after {
+  content: '';
+  position: absolute;
+  bottom: -40px; left: -20px;
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  background: rgba(30,51,88,0.6);
+}
+
+.quote-eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 10px;
+  position: relative; z-index: 1;
+}
+
+.quote-main {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+  line-height: 1.5;
+  color: #fff;
+  margin-bottom: 12px;
+  position: relative; z-index: 1;
+}
+
+.quote-source {
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+  position: relative; z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.quote-next-btn {
+  background: rgba(255,255,255,0.1);
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  color: rgba(255,255,255,0.6);
+  font-size: 11px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ── GAME ALERT ── */
+.game-alert {
+  margin: 14px 16px;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.game-alert-pre {
+  background: var(--navy2);
+  border: 1.5px solid var(--gold);
+  padding: 14px 16px;
+  border-radius: 16px;
+}
+
+.game-alert-post {
+  background: var(--teal-light);
+  border: 1.5px solid var(--teal);
+  padding: 14px 16px;
+  border-radius: 16px;
+}
+
+.game-alert-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.game-alert-pre .game-alert-label { color: var(--gold); }
+.game-alert-post .game-alert-label { color: var(--teal); }
+
+.game-alert-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+.game-alert-pre .game-alert-title { color: #fff; }
+
+.game-alert-sub { font-size: 12px; color: var(--muted); }
+.game-alert-pre .game-alert-sub { color: rgba(255,255,255,0.5); }
+
+.game-alert-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.alert-cta {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+.cta-gold { background: var(--gold); color: var(--navy); }
+.cta-teal { background: var(--teal); color: #fff; }
+
+/* ── SECTION TITLE ── */
+.sec { padding: 18px 16px 10px; }
+.sec-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ── STATS ROW ── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 0 16px 6px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 10px;
+  text-align: center;
+}
+
+.stat-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 1px;
+  line-height: 1;
+  margin-bottom: 3px;
+}
+.stat-num.gold { color: var(--gold); }
+.stat-num.teal { color: var(--teal); }
+.stat-num.red { color: var(--red); }
+.stat-label { font-size: 10px; color: var(--muted); font-weight: 500; }
+
+/* ── QUICK ACTIONS ── */
+.action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 0 16px;
+}
+
+.action-tile {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.12s, box-shadow 0.12s;
+  position: relative;
+  overflow: hidden;
+}
+
+.action-tile:hover { transform: translateY(-1px); }
+
+.action-tile-accent {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: 16px 16px 0 0;
+}
+.acc-gold { background: var(--gold); }
+.acc-navy { background: var(--navy); }
+.acc-teal { background: var(--teal); }
+.acc-red { background: var(--red); }
+
+.tile-icon { font-size: 24px; margin-bottom: 10px; display: block; }
+.tile-label { font-size: 13px; font-weight: 600; color: var(--text); display: block; }
+.tile-sub { font-size: 11px; color: var(--muted); margin-top: 2px; display: block; }
+
+/* ── BLOG CARDS ── */
+.blog-scroll {
+  display: flex;
+  gap: 12px;
+  padding: 0 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+.blog-scroll::-webkit-scrollbar { display: none; }
+
+.blog-card {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  min-width: 220px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.blog-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+}
+.tag-pre { background: var(--gold-light); color: var(--gold2); }
+.tag-mind { background: var(--ice); color: var(--navy); }
+.tag-post { background: var(--teal-light); color: var(--teal); }
+
+.blog-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.blog-author {
+  font-size: 11px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.author-dot {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: #fff;
+}
+.dot-navy { background: var(--navy); }
+.dot-gold { background: var(--gold); color: var(--navy); }
+.dot-teal { background: var(--teal); }
+
+.blog-read { font-size: 10px; color: var(--muted); margin-top: 8px; }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 420px;
+  max-width: 100vw;
+  background: var(--navy);
+  padding: 10px 0 18px;
+  display: flex;
+  z-index: 100;
+}
+
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  padding: 4px 0;
+}
+.nav-icon { font-size: 19px; }
+.nav-lbl { font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.4); }
+.nav-btn.active .nav-lbl { color: var(--gold); }
+.nav-pip {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--gold);
+  opacity: 0;
+}
+.nav-btn.active .nav-pip { opacity: 1; }
+
+/* ── PAGE HEADERS ── */
+.page-header {
+  background: var(--navy);
+  padding: 16px 20px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.back-btn {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+}
+
+.page-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 1.5px;
+  color: #fff;
+}
+
+/* ── CAMERA / POSTURE SCAN ── */
+.scan-wrap { padding: 16px; }
+
+.viewfinder {
+  width: 100%;
+  aspect-ratio: 3/4;
+  background: var(--navy);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  border: 1px solid var(--navy3);
+}
+
+.vf-body-guide {
+  width: 110px; height: 250px;
+  border: 1.5px dashed rgba(244,166,35,0.3);
+  border-radius: 55px;
+  position: relative;
+}
+.vf-body-guide::before {
+  content: '';
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(244,166,35,0.3);
+  position: absolute;
+  top: -52px;
+  left: 50%; transform: translateX(-50%);
+}
+
+.vf-grid {
+  position: absolute; inset: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+}
+.vf-cell {
+  border: 0.5px solid rgba(255,255,255,0.04);
+}
+
+.corner { position: absolute; width: 22px; height: 22px; }
+.corner.tl { top: 14px; left: 14px; border-top: 2px solid var(--gold); border-left: 2px solid var(--gold); }
+.corner.tr { top: 14px; right: 14px; border-top: 2px solid var(--gold); border-right: 2px solid var(--gold); }
+.corner.bl { bottom: 14px; left: 14px; border-bottom: 2px solid var(--gold); border-left: 2px solid var(--gold); }
+.corner.br { bottom: 14px; right: 14px; border-bottom: 2px solid var(--gold); border-right: 2px solid var(--gold); }
+
+.vf-label {
+  position: absolute;
+  bottom: 14px;
+  width: 100%;
+  text-align: center;
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+}
+
+.vf-scanning {
+  position: absolute; inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10,22,40,0.85);
+  gap: 16px;
+}
+.vf-scanning.show { display: flex; }
+
+.scan-line {
+  width: 70%;
+  height: 2px;
+  background: var(--gold);
+  animation: scanMove 1.5s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(244,166,35,0.6);
+}
+
+@keyframes scanMove {
+  0% { transform: translateY(-80px); opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: translateY(80px); opacity: 0; }
+}
+
+.scan-status {
+  font-size: 13px;
+  color: var(--gold);
+  font-weight: 500;
+  text-align: center;
+}
+
+.scan-point {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: pulse 1s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100% { transform: scale(1); opacity:1; } 50% { transform: scale(1.4); opacity:0.5; } }
+
+.camera-container {
+  width: 100%;
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--navy);
+  margin-bottom: 14px;
+  position: relative;
+  aspect-ratio: 3/4;
+}
+
+#cameraVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transform: scaleX(-1);
+}
+
+#capturedCanvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+  border-radius: 20px;
+}
+
+.camera-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.camera-body-guide {
+  width: 110px; height: 250px;
+  border: 1.5px dashed rgba(244,166,35,0.4);
+  border-radius: 55px;
+  position: relative;
+}
+.camera-body-guide::before {
+  content: '';
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(244,166,35,0.4);
+  position: absolute;
+  top: -52px; left: 50%; transform: translateX(-50%);
+}
+
+.camera-hint {
+  position: absolute;
+  bottom: 14px;
+  width: 100%;
+  text-align: center;
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  pointer-events: none;
+}
+
+.camera-no-permission {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--navy2);
+  padding: 20px;
+  text-align: center;
+}
+.camera-no-permission.show { display: flex; }
+.camera-no-permission p { font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.5; }
+
+.cam-btn-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.cam-action-btn {
+  flex: 1;
+  padding: 13px;
+  border: none;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.cam-capture { background: var(--gold); color: var(--navy); }
+.cam-retake { background: var(--navy3); color: #fff; display: none; }
+.cam-flip { background: var(--navy3); color: #fff; width: 48px; flex: none; font-size: 16px; }
+
+.scan-btn {
+  width: 100%;
+  padding: 16px;
+  background: var(--gold);
+  border: none;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--navy);
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.3px;
+  margin-bottom: 14px;
+}
+.scan-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.ai-result-card {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  display: none;
+}
+.ai-result-card.show { display: block; }
+
+.result-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 0.5px solid var(--border);
+}
+
+.overall-score {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.result-header-text h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+.result-header-text p { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+.metric-row {
+  margin-bottom: 12px;
+}
+.metric-top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+.metric-name { font-size: 13px; font-weight: 500; color: var(--text); }
+.metric-val { font-size: 13px; font-weight: 600; }
+.mv-good { color: var(--teal); }
+.mv-warn { color: var(--gold); }
+.mv-low { color: var(--red); }
+
+.metric-bar {
+  height: 5px;
+  background: var(--bg);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.metric-fill { height: 100%; border-radius: 3px; transition: width 1.2s ease; }
+.mf-good { background: var(--teal); }
+.mf-warn { background: var(--gold); }
+.mf-low { background: var(--red); }
+
+.ai-feedback-block {
+  background: var(--ice);
+  border-radius: 12px;
+  padding: 14px;
+  margin-top: 16px;
+}
+.ai-feedback-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--navy);
+  margin-bottom: 8px;
+}
+.ai-feedback-text {
+  font-size: 13px;
+  color: var(--navy2);
+  line-height: 1.65;
+}
+
+/* ── CALENDAR ── */
+.cal-wrap { padding: 16px; }
+
+.cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+.cal-nav { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--text); padding: 4px 8px; }
+.cal-month {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+  color: var(--text);
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.cal-day-label {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+  padding: 6px 0;
+  text-transform: uppercase;
+}
+
+.cal-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  position: relative;
+  background: var(--surface);
+  border: 0.5px solid transparent;
+  transition: all 0.12s;
+}
+
+.cal-day:hover { border-color: var(--gold); }
+.cal-day.today { background: var(--navy); color: #fff; }
+.cal-day.has-event::after {
+  content: '';
+  position: absolute;
+  bottom: 4px; left: 50%;
+  transform: translateX(-50%);
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+.cal-day.game-day { background: var(--gold-light); border-color: var(--gold); }
+.cal-day.other-month { color: var(--muted); background: transparent; }
+.cal-day.empty { background: transparent; border-color: transparent; cursor: default; }
+
+.event-list { margin-bottom: 14px; }
+
+.event-item {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.event-item:hover { transform: translateX(2px); }
+
+.event-dot-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.event-type-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+}
+.etd-game { background: var(--gold); }
+.etd-practice { background: var(--teal); }
+.etd-other { background: var(--muted); }
+
+.event-info { flex: 1; }
+.event-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.event-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+.event-type-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+.etb-game { background: var(--gold-light); color: var(--gold2); }
+.etb-practice { background: var(--teal-light); color: var(--teal); }
+.etb-other { background: var(--bg); color: var(--muted); }
+
+.add-event-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--navy);
+  border: none;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* ── ADD EVENT FORM ── */
+.add-event-form {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 14px;
+  display: none;
+}
+.add-event-form.show { display: block; }
+
+.form-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.form-input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 0.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  outline: none;
+  margin-bottom: 14px;
+}
+.form-input:focus { border-color: var(--gold); }
+
+.type-select-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.type-opt {
+  flex: 1;
+  padding: 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--muted);
+  transition: all 0.12s;
+}
+.type-opt.selected-game { border-color: var(--gold); background: var(--gold-light); color: var(--gold2); }
+.type-opt.selected-practice { border-color: var(--teal); background: var(--teal-light); color: var(--teal); }
+.type-opt.selected-other { border-color: var(--navy); background: var(--ice); color: var(--navy); }
+
+.save-event-btn {
+  width: 100%;
+  padding: 13px;
+  background: var(--gold);
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--navy);
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ── PRE-GAME SCREEN ── */
+.pregame-hero {
+  background: var(--navy);
+  padding: 20px 20px 24px;
+}
+.pregame-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--gold); margin-bottom: 8px;
+}
+.pregame-event {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  color: #fff;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.pregame-time { font-size: 13px; color: rgba(255,255,255,0.5); }
+
+.pregame-body { padding: 16px; }
+
+.ritual-card {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.ritual-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.ritual-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 0.5px solid var(--border);
+}
+.ritual-item:last-child { border-bottom: none; padding-bottom: 0; }
+.ritual-check {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 12px;
+  color: transparent;
+  transition: all 0.15s;
+}
+.ritual-check.checked { background: var(--teal); border-color: var(--teal); color: #fff; }
+.ritual-text { font-size: 13px; color: var(--text); }
+
+.focus-word-card {
+  background: var(--navy);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+.fw-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; color: rgba(255,255,255,0.4); text-transform: uppercase; margin-bottom: 8px; }
+.fw-word {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 52px;
+  letter-spacing: 4px;
+  color: var(--gold);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.fw-sub { font-size: 12px; color: rgba(255,255,255,0.4); }
+
+.pregame-read {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.read-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 16px;
+  color: var(--text);
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+.read-meta { font-size: 11px; color: var(--muted); margin-bottom: 12px; }
+.read-excerpt { font-size: 13px; color: var(--text); line-height: 1.7; }
+.read-more-btn {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background: var(--gold-light);
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gold2);
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ── POST-GAME SCREEN ── */
+.postgame-hero {
+  background: var(--teal);
+  padding: 20px 20px 24px;
+}
+.postgame-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: 8px;
+}
+.postgame-event {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  color: #fff;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.postgame-sub { font-size: 13px; color: rgba(255,255,255,0.6); }
+
+.postgame-body { padding: 16px; }
+
+.result-select {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.result-opt {
+  flex: 1;
+  padding: 14px 6px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  cursor: pointer;
+  text-align: center;
+  font-family: 'DM Sans', sans-serif;
+}
+.result-opt .res-icon { font-size: 22px; display: block; margin-bottom: 4px; }
+.result-opt .res-label { font-size: 11px; font-weight: 600; color: var(--muted); }
+.result-opt.sel-win { border-color: var(--teal); background: var(--teal-light); }
+.result-opt.sel-win .res-label { color: var(--teal); }
+.result-opt.sel-loss { border-color: var(--red); background: var(--red-light); }
+.result-opt.sel-loss .res-label { color: var(--red); }
+.result-opt.sel-tie { border-color: var(--gold); background: var(--gold-light); }
+.result-opt.sel-tie .res-label { color: var(--gold2); }
+
+.rating-section {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.rating-label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; }
+
+.rating-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.rating-name { font-size: 13px; color: var(--text); width: 100px; flex-shrink: 0; }
+.rating-stars {
+  display: flex; gap: 4px; flex: 1;
+}
+.star {
+  font-size: 18px;
+  cursor: pointer;
+  color: var(--border);
+  transition: color 0.1s;
+  line-height: 1;
+}
+.star.lit { color: var(--gold); }
+
+.post-reflection {
+  width: 100%;
+  min-height: 100px;
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  padding: 13px;
+  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  resize: none;
+  color: var(--text);
+  background: var(--surface);
+  outline: none;
+  line-height: 1.6;
+}
+
+.post-submit {
+  width: 100%;
+  margin-top: 14px;
+  padding: 16px;
+  background: var(--teal);
+  border: none;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ── BLOG READER ── */
+.blog-reader { padding: 16px; }
+
+.blog-cover {
+  background: var(--navy2);
+  border-radius: 16px;
+  padding: 24px 20px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.blog-cover::before {
+  content: '';
+  position: absolute;
+  right: -20px; top: -20px;
+  width: 130px; height: 130px;
+  border-radius: 50%;
+  background: rgba(244,166,35,0.08);
+}
+
+.blog-cover-tag {
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--gold); margin-bottom: 10px;
+}
+.blog-cover-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 20px;
+  color: #fff;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+.blog-cover-author { font-size: 12px; color: rgba(255,255,255,0.5); }
+
+.blog-body {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.75;
+}
+
+.blog-body h3 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 17px;
+  color: var(--navy);
+  margin: 20px 0 8px;
+}
+
+.blog-body p { margin-bottom: 14px; }
+
+.pull-quote {
+  border-left: 3px solid var(--gold);
+  padding: 12px 16px;
+  margin: 20px 0;
+  background: var(--gold-light);
+  border-radius: 0 10px 10px 0;
+}
+.pull-quote p {
+  font-family: 'DM Serif Display', serif;
+  font-size: 16px;
+  color: var(--navy);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.ai-insights {
+  background: var(--ice);
+  border: 0.5px solid var(--ice2);
+  border-radius: 14px;
+  padding: 16px;
+  margin: 20px 0;
+}
+.ai-insights-title { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--navy); margin-bottom: 10px; }
+.ai-insight-item { font-size: 13px; color: var(--navy2); margin-bottom: 6px; display: flex; gap: 8px; }
+.ai-insight-item::before { content: '→'; color: var(--gold); flex-shrink: 0; }
+
+/* ── MODAL/OVERLAY ── */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10,22,40,0.6);
+  z-index: 200;
+  align-items: flex-end;
+  justify-content: center;
+}
+.overlay.open { display: flex; }
+
+.sheet {
+  background: var(--surface);
+  border-radius: 24px 24px 0 0;
+  width: 100%;
+  max-width: 420px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 0 0 36px;
+  animation: slideUp 0.25s ease;
+}
+@keyframes slideUp { from { transform: translateY(30px); opacity:0; } to { transform: none; opacity:1; } }
+
+.sheet-handle {
+  width: 36px; height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 14px auto 0;
+}
+
+.sheet-head {
+  padding: 16px 20px;
+  border-bottom: 0.5px solid var(--border);
+}
+.sheet-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+  color: var(--text);
+}
+.sheet-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+/* ── MISC ── */
+.pad { padding: 0 16px; }
+
+.progress-screen-wrap { padding: 16px; }
+
+.prog-chart-card {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.prog-chart-title { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+
+.bar-chart-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 80px;
+}
+
+.bc-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.bc-bar {
+  width: 100%;
+  border-radius: 5px 5px 0 0;
+}
+
+.bc-lbl { font-size: 10px; color: var(--muted); }
+
+.history-entry {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.he-date { font-size: 11px; color: var(--muted); width: 44px; }
+.he-info { flex: 1; }
+.he-text { font-size: 13px; font-weight: 500; color: var(--text); }
+.he-chip { font-size: 10px; margin-top: 4px; display: inline-block; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+.hc-good { background: var(--teal-light); color: var(--teal); }
+.hc-warn { background: var(--gold-light); color: var(--gold2); }
+.he-score { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--gold); }
+
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ═══════ HOME ═══════ -->
+<div id="screen-home" class="screen active">
+  <div class="top-bar">
+    <div class="logo">Rise<span>.</span>Hockey</div>
+    <div class="top-right">
+      <div class="streak-badge" id="topStreakBadge">🔥 0</div>
+      <div class="avatar">AK</div>
+    </div>
+  </div>
+
+  <div class="hero-quote" id="heroQuote">
+    <div class="quote-eyebrow">Morning Fuel — Mar 17</div>
+    <div class="quote-main" id="qText">"The will to win means nothing without the will to prepare."</div>
+    <div class="quote-source">
+      <span id="qAuthor">— Juma Ikangaa, Marathon Champion</span>
+      <button class="quote-next-btn" onclick="nextQuote()">Next ›</button>
+    </div>
+  </div>
+
+  <!-- Game day alert - shown dynamically -->
+  <div id="gameAlert" class="game-alert" style="display:none"></div>
+
+  <div class="sec"><div class="sec-title">Aleks's Snapshot</div></div>
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-num gold" id="homeConfScore">—</div>
+      <div class="stat-label">Confidence</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num teal" id="homeStreak">0</div>
+      <div class="stat-label">Day Streak</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num red" id="homePosture">—</div>
+      <div class="stat-label">Last Posture</div>
+    </div>
+  </div>
+
+  <div class="sec"><div class="sec-title">Quick Access</div></div>
+  <div class="action-grid" style="margin-bottom:16px">
+    <button class="action-tile" onclick="showScreen('screen-scan')">
+      <div class="action-tile-accent acc-gold"></div>
+      <span class="tile-icon">📸</span>
+      <span class="tile-label">Posture Scan</span>
+      <span class="tile-sub">AI-powered analysis</span>
+    </button>
+    <button class="action-tile" onclick="showScreen('screen-cal')">
+      <div class="action-tile-accent acc-navy"></div>
+      <span class="tile-icon">🏒</span>
+      <span class="tile-label">Schedule</span>
+      <span class="tile-sub">Games & practice</span>
+    </button>
+    <button class="action-tile" onclick="showScreen('screen-pregame')">
+      <div class="action-tile-accent acc-teal"></div>
+      <span class="tile-icon">⚡</span>
+      <span class="tile-label">Pre-Game</span>
+      <span class="tile-sub">Mental prep ritual</span>
+    </button>
+    <button class="action-tile" onclick="showScreen('screen-postgame')">
+      <div class="action-tile-accent acc-red"></div>
+      <span class="tile-icon">📊</span>
+      <span class="tile-label">Post-Game</span>
+      <span class="tile-sub">Reflect & learn</span>
+    </button>
+  </div>
+
+  <div class="sec"><div class="sec-title">Reads for Aleks</div></div>
+  <div class="blog-scroll">
+    <div class="blog-card" onclick="openBlog(0)">
+      <span class="blog-tag tag-pre">Pre-Game</span>
+      <div class="blog-title">The Pressure Paradox: Why the Best Defensemen Thrive When It's Hardest</div>
+      <div class="blog-author">
+        <div class="author-dot dot-navy">DP</div>
+        <span>David Perron — NHL Veteran</span>
+      </div>
+      <div class="blog-read">6 min read</div>
+    </div>
+    <div class="blog-card" onclick="openBlog(1)">
+      <span class="blog-tag tag-mind">Mindset</span>
+      <div class="blog-title">Identity Before Outcome: How Michigan's Wolverines Build Unshakeable Confidence</div>
+      <div class="blog-author">
+        <div class="author-dot dot-gold">BH</div>
+        <span>Brian Hermanhausen — USAH Coach</span>
+      </div>
+      <div class="blog-read">8 min read</div>
+    </div>
+    <div class="blog-card" onclick="openBlog(2)">
+      <span class="blog-tag tag-post">Reflection</span>
+      <div class="blog-title">Losing Isn't Failing: What Young Athletes Get Wrong About Bad Games</div>
+      <div class="blog-author">
+        <div class="author-dot dot-teal">JB</div>
+        <span>James Brown — Sports Psychologist</span>
+      </div>
+      <div class="blog-read">5 min read</div>
+    </div>
+  </div>
+
+  <div style="height:16px"></div>
+
+  <!-- Install App button — always visible when not in standalone mode -->
+  <div id="installRow" style="padding:0 16px 16px">
+    <button onclick="installApp()" style="width:100%;padding:14px;background:var(--navy);border:1.5px solid var(--gold);border-radius:14px;font-size:14px;font-weight:700;color:var(--gold);cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:10px">
+      <span style="font-size:18px">📲</span> Install App on This Device
+    </button>
+    <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:6px">Save to your home screen for offline access</div>
+  </div>
+
+</div>
+
+<!-- ═══════ POSTURE SCAN ═══════ -->
+<div id="screen-scan" class="screen">
+  <div class="page-header">
+    <button class="back-btn" onclick="showScreen('screen-home')">‹</button>
+    <div class="page-title">AI POSTURE SCAN</div>
+  </div>
+
+  <div class="scan-wrap">
+
+    <!-- Permission denied card — lives OUTSIDE camera-container so it never gets clipped -->
+    <div class="camera-no-permission" id="noPermission">
+      <div style="font-size:40px;margin-bottom:8px" id="permIcon">📷</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:#fff;letter-spacing:1.5px;margin-bottom:8px" id="permTitle">Camera Access Needed</div>
+      <p id="permMsg" style="margin-bottom:4px">Rise needs your camera to analyse your posture and physique.</p>
+      <button id="permRequestBtn" onclick="requestCameraPermission()" style="margin-top:14px;padding:13px 28px;background:var(--gold);border:none;border-radius:12px;font-size:14px;font-weight:700;color:var(--navy);cursor:pointer;font-family:'DM Sans',sans-serif;width:100%">Allow Camera Access</button>
+      <div id="permInstructions" style="display:none;margin-top:16px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px 16px;text-align:left;width:100%">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:10px">Step-by-step: how to unblock</div>
+        <div id="permSteps" style="font-size:13px;color:rgba(255,255,255,0.75);line-height:2"></div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.1);font-size:11px;color:rgba(255,255,255,0.35)">After enabling, tap the button above to try again.</div>
+      </div>
+      <div id="chromeSettingsShortcut" style="display:none;margin-top:10px;width:100%">
+        <button onclick="openChromeSettings()" style="width:100%;padding:11px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;font-size:12px;font-weight:600;color:rgba(255,255,255,0.8);cursor:pointer;font-family:'DM Sans',sans-serif;">
+          Open Chrome Camera Settings →
+        </button>
+      </div>
+    </div>
+
+    <!-- Live camera viewfinder -->
+    <div class="camera-container" id="cameraContainer">
+      <video id="cameraVideo" autoplay playsinline muted></video>
+      <canvas id="capturedCanvas"></canvas>
+
+      <div class="camera-overlay" id="cameraGuideOverlay">
+        <div class="camera-body-guide"></div>
+      </div>
+
+      <div class="corner tl"></div>
+      <div class="corner tr"></div>
+      <div class="corner bl"></div>
+      <div class="corner br"></div>
+
+      <div class="camera-hint" id="cameraHint">Stand 1.5m back · full body in frame</div>
+
+      <div class="vf-scanning" id="scanAnim">
+        <div class="scan-line"></div>
+        <div class="scan-point"></div>
+        <div class="scan-status" id="scanStatus">Detecting body landmarks...</div>
+      </div>
+    </div>
+
+    <div class="cam-btn-row" id="camBtnRow">
+      <button class="cam-action-btn cam-capture" id="captureBtn" onclick="captureFrame()">📸 Capture</button>
+      <button class="cam-action-btn cam-retake" id="retakeBtn" onclick="retakePhoto()">↩ Retake</button>
+      <button class="cam-action-btn cam-flip" id="flipBtn" onclick="flipCamera()" title="Flip camera">🔄</button>
+    </div>
+
+    <button class="scan-btn" id="scanBtn" onclick="runAIScan()" disabled>
+      Analyse with AI Posture Coach
+    </button>
+    <div id="offlineNote" style="display:none;text-align:center;font-size:11px;color:var(--muted);margin:-8px 0 14px;padding:8px 12px;background:var(--surface);border-radius:10px;border:0.5px solid var(--border)">
+      ⚡ AI analysis needs internet · Camera & capture work offline
+    </div>
+    <div style="text-align:center;margin:-6px 0 14px">
+      <button onclick="localStorage.removeItem('rh_gemini_key');checkGeminiKeySetup();" style="background:none;border:none;font-size:11px;color:var(--muted);cursor:pointer;font-family:-apple-system,sans-serif;text-decoration:underline">Change AI API key</button>
+    </div>
+
+    <!-- Gemini API key setup — shown when key is missing or quota exceeded -->
+    <div id="apiKeySetup" style="display:none;background:var(--navy2);border-radius:14px;padding:16px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Free AI Key Needed</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.7);line-height:1.8;margin-bottom:12px">
+        Get a free Gemini key — no payment, takes 1 minute:<br>
+        <span style="color:rgba(255,255,255,0.45)">1.</span> Go to <strong style="color:var(--gold)">aistudio.google.com</strong><br>
+        <span style="color:rgba(255,255,255,0.45)">2.</span> Tap <strong style="color:#fff">Get API Key &rarr; Create API key</strong><br>
+        <span style="color:rgba(255,255,255,0.45)">3.</span> Copy the key and paste it below
+      </div>
+      <input id="geminiKeyInput" type="text" placeholder="Paste key here (starts with AI...)"
+        style="width:100%;padding:11px 12px;border-radius:10px;border:0.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;font-size:13px;font-family:-apple-system,sans-serif;outline:none;margin-bottom:10px">
+      <button onclick="saveGeminiKey()" style="width:100%;padding:11px;background:var(--gold);border:none;border-radius:10px;font-size:13px;font-weight:700;color:var(--navy);cursor:pointer;font-family:-apple-system,sans-serif">
+        Save Key &amp; Activate Scanner
+      </button>
+      <div id="apiKeyError" style="display:none;margin-top:8px;font-size:11px;color:#ff8a80;text-align:center;line-height:1.5"></div>
+    </div>
+
+    <div class="ai-result-card" id="aiResultCard">
+      <div class="result-header">
+        <div class="overall-score" id="overallScore">—</div>
+        <div class="result-header-text">
+          <h3 id="resultHeading">Posture Analysis</h3>
+          <p id="resultSubhead">Scanning...</p>
+        </div>
+      </div>
+
+      <div id="metricsContainer"></div>
+
+      <div class="ai-feedback-block">
+        <div class="ai-feedback-title">🏒 Aleks's Coaching Notes</div>
+        <div class="ai-feedback-text" id="aiFeedbackText">Analyzing...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ CALENDAR ═══════ -->
+<div id="screen-cal" class="screen">
+  <div class="page-header">
+    <button class="back-btn" onclick="showScreen('screen-home')">‹</button>
+    <div class="page-title">HOCKEY SCHEDULE</div>
+  </div>
+
+  <div class="cal-wrap">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="changeMonth(-1)">‹</button>
+      <div class="cal-month" id="calMonthLabel">March 2026</div>
+      <button class="cal-nav" onclick="changeMonth(1)">›</button>
+    </div>
+
+    <div class="cal-grid" id="calGrid"></div>
+
+    <div class="sec" style="padding:0 0 10px"><div class="sec-title">Upcoming</div></div>
+    <div class="event-list" id="eventList"></div>
+
+    <div class="add-event-form" id="addEventForm">
+      <div style="font-family:'DM Serif Display',serif;font-size:16px;color:var(--text);margin-bottom:14px">Add Event</div>
+      <label class="form-label">Event Name</label>
+      <input class="form-input" id="evtName" placeholder="e.g. Avalanche vs Northstars">
+      <label class="form-label">Date</label>
+      <input class="form-input" type="date" id="evtDate">
+      <label class="form-label">Time</label>
+      <input class="form-input" type="time" id="evtTime">
+      <label class="form-label">Location</label>
+      <input class="form-input" id="evtLocation" placeholder="e.g. Sackville Sports Stadium">
+      <label class="form-label">Type</label>
+      <div class="type-select-row">
+        <button class="type-opt selected-game" id="typeGame" onclick="selectType('game')">🏒 Game</button>
+        <button class="type-opt" id="typePractice" onclick="selectType('practice')">⛸️ Practice</button>
+        <button class="type-opt" id="typeOther" onclick="selectType('other')">📋 Other</button>
+      </div>
+      <button class="save-event-btn" onclick="saveEvent()">Add to Schedule</button>
+    </div>
+
+    <button class="add-event-btn" onclick="toggleAddForm()">
+      <span>＋</span> Add Game or Practice
+    </button>
+  </div>
+</div>
+
+<!-- ═══════ PRE-GAME ═══════ -->
+<div id="screen-pregame" class="screen">
+  <div class="pregame-hero">
+    <div class="pregame-label" id="pregameLabel">Pre-Game Mental Prep</div>
+    <div class="pregame-event" id="pregameEventName">No game scheduled today</div>
+    <div class="pregame-time" id="pregameEventTime">Open the Schedule tab to add a game</div>
+  </div>
+
+  <div class="pregame-body">
+
+    <div class="focus-word-card">
+      <div class="fw-label">Today's Focus Word</div>
+      <div class="fw-word" id="focusWord">COMPETE</div>
+      <div class="fw-sub" id="focusSub">Physical battles, every shift. Own the gap.</div>
+    </div>
+
+    <div class="ritual-card">
+      <div class="ritual-title">Pre-Game Checklist</div>
+      <div class="ritual-item">
+        <div class="ritual-check" id="rc0" onclick="toggleCheck(this,'rc0')">✓</div>
+        <div class="ritual-text">Gear packed and ready the night before</div>
+      </div>
+      <div class="ritual-item">
+        <div class="ritual-check" id="rc1" onclick="toggleCheck(this,'rc1')">✓</div>
+        <div class="ritual-text">Morning skate / activation warmup done</div>
+      </div>
+      <div class="ritual-item">
+        <div class="ritual-check" id="rc2" onclick="toggleCheck(this,'rc2')">✓</div>
+        <div class="ritual-text">Nutrition — pre-game meal 3 hours before</div>
+      </div>
+      <div class="ritual-item">
+        <div class="ritual-check" id="rc3" onclick="toggleCheck(this,'rc3')">✓</div>
+        <div class="ritual-text">5 minutes of visualization: gap control, first contact</div>
+      </div>
+      <div class="ritual-item">
+        <div class="ritual-check" id="rc4" onclick="toggleCheck(this,'rc4')">✓</div>
+        <div class="ritual-text">Read today's pre-game article</div>
+      </div>
+      <div class="ritual-item">
+        <div class="ritual-check" id="rc5" onclick="toggleCheck(this,'rc5')">✓</div>
+        <div class="ritual-text">Tell yourself: "I'm prepared. I belong here."</div>
+      </div>
+    </div>
+
+    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Pre-Game Notes</div>
+      <textarea id="pregameNotes" style="width:100%;min-height:80px;border:0.5px solid var(--border);border-radius:10px;padding:12px;font-size:13px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;resize:none;color:var(--text);background:var(--bg);outline:none;line-height:1.6"
+        placeholder="How are you feeling going in? What's your focus? Any nerves to acknowledge?..."></textarea>
+    </div>
+
+    <button onclick="savePregame()" style="width:100%;padding:14px;background:var(--gold);border:none;border-radius:14px;font-size:14px;font-weight:700;color:var(--navy);cursor:pointer;font-family:-apple-system,sans-serif;margin-bottom:16px">
+      Save Pre-Game Prep ✓
+    </button>
+
+    <div class="sec" style="padding:0 0 10px"><div class="sec-title">Read Before You Lace Up</div></div>
+
+    <div class="pregame-read" onclick="openBlog(0)" style="cursor:pointer">
+      <div class="blog-tag tag-pre" style="display:inline-block;margin-bottom:10px">Featured Read</div>
+      <div class="read-title">The Pressure Paradox: Why the Best Defensemen Thrive When It's Hardest</div>
+      <div class="read-meta">David Perron · NHL Veteran · 6 min read</div>
+      <div class="read-excerpt">"The moment the game feels too big is the moment you've forgotten why you started. Pressure is a privilege — it means you've put yourself somewhere that matters..."</div>
+      <button class="read-more-btn">Read Full Article →</button>
+    </div>
+
+    <div class="pregame-read" onclick="openBlog(3)" style="cursor:pointer">
+      <div class="blog-tag tag-mind" style="display:inline-block;margin-bottom:10px">Mindset</div>
+      <div class="read-title">10 Things Elite Defencemen Do Differently on Game Day</div>
+      <div class="read-meta">Hockey Canada Development Staff · 4 min read</div>
+      <div class="read-excerpt">"They aren't necessarily the most talented players on the ice. But they are the most prepared mentally. They've already played the game in their heads before they step on the ice..."</div>
+      <button class="read-more-btn">Read Full Article →</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════ POST-GAME ═══════ -->
+<div id="screen-postgame" class="screen">
+  <div class="postgame-hero">
+    <div class="postgame-label">Post-Game Check-In</div>
+    <div class="postgame-event" id="postgameEventName">Avalanche vs Northstars</div>
+    <div class="postgame-sub">Time to reflect and grow 💪</div>
+  </div>
+
+  <div class="postgame-body">
+
+    <div class="sec" style="padding:0 0 10px"><div class="sec-title">Game Result</div></div>
+    <div class="result-select">
+      <div class="result-opt" onclick="selectResult('win', this)">
+        <span class="res-icon">🏆</span>
+        <span class="res-label">Win</span>
+      </div>
+      <div class="result-opt" onclick="selectResult('loss', this)">
+        <span class="res-icon">💪</span>
+        <span class="res-label">Loss</span>
+      </div>
+      <div class="result-opt" onclick="selectResult('tie', this)">
+        <span class="res-icon">🤝</span>
+        <span class="res-label">Tie</span>
+      </div>
+    </div>
+
+    <div class="rating-section">
+      <div class="rating-label">Rate Your Game</div>
+      <div class="rating-row">
+        <div class="rating-name">Gap Control</div>
+        <div class="rating-stars" id="ratingGap" data-key="gap"></div>
+      </div>
+      <div class="rating-row">
+        <div class="rating-name">Physicality</div>
+        <div class="rating-stars" id="ratingPhys" data-key="phys"></div>
+      </div>
+      <div class="rating-row">
+        <div class="rating-name">Hockey IQ</div>
+        <div class="rating-stars" id="ratingIQ" data-key="iq"></div>
+      </div>
+      <div class="rating-row">
+        <div class="rating-name">Confidence</div>
+        <div class="rating-stars" id="ratingConf" data-key="conf"></div>
+      </div>
+      <div class="rating-row">
+        <div class="rating-name">Communicate</div>
+        <div class="rating-stars" id="ratingComm" data-key="comm"></div>
+      </div>
+    </div>
+
+    <div class="sec" style="padding:0 0 10px"><div class="sec-title">Reflection</div></div>
+
+    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:13px;font-weight:600;color:var(--text)">Today's Confidence</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--gold)" id="dailyConfVal">7</div>
+      </div>
+      <input type="range" min="1" max="10" value="7" step="1" id="dailyConfSlider" style="width:100%" oninput="document.getElementById('dailyConfVal').textContent=this.value">
+      <div style="display:flex;justify-content:space-between;margin-top:4px">
+        <span style="font-size:10px;color:var(--muted)">Low</span>
+        <span style="font-size:10px;color:var(--muted)">High</span>
+      </div>
+    </div>
+
+    <textarea class="post-reflection" id="postReflection" placeholder="What was your best moment? What would you do differently? What did you learn? Be honest with yourself — the greats review every game..."></textarea>
+
+    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:16px;margin-top:12px" id="postGameQuoteBlock">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Post-Game Thought</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:15px;color:var(--text);line-height:1.5" id="postQuoteText">"Every game is a data point on the road to who you're becoming. The question is: are you collecting the data?"</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px">— Wayne Gretzky</div>
+    </div>
+
+    <button class="post-submit" onclick="submitPostGame()">Save Game Review</button>
+
+  </div>
+</div>
+
+<!-- ═══════ BLOG READER ═══════ -->
+<div id="screen-blog" class="screen">
+  <div class="page-header">
+    <button class="back-btn" onclick="closeBlog()">‹</button>
+    <div class="page-title" id="blogScreenTitle">ARTICLE</div>
+  </div>
+  <div class="blog-reader" id="blogContent"></div>
+</div>
+
+<!-- ═══════ DAILY CHECK-IN ═══════ -->
+<div id="screen-checkin" class="screen">
+  <div class="page-header">
+    <button class="back-btn" onclick="showScreen('screen-home')">‹</button>
+    <div class="page-title" id="checkinPageTitle">MORNING CHECK-IN</div>
+  </div>
+  <div style="padding:16px">
+
+    <!-- Morning / Evening toggle -->
+    <div style="display:flex;background:var(--surface);border:0.5px solid var(--border);border-radius:12px;padding:4px;gap:4px;margin-bottom:18px">
+      <button id="tabMorning" onclick="switchCheckinTab('morning')"
+        style="flex:1;padding:10px;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:-apple-system,sans-serif;background:var(--navy);color:var(--gold)">
+        ☀️ Morning
+      </button>
+      <button id="tabEvening" onclick="switchCheckinTab('evening')"
+        style="flex:1;padding:10px;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:-apple-system,sans-serif;background:transparent;color:var(--muted)">
+        🌙 Evening Journal
+      </button>
+    </div>
+
+    <!-- ── MORNING PANEL ── -->
+    <div id="panelMorning">
+      <div style="background:var(--navy);border-radius:14px;padding:14px 16px;margin-bottom:16px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:5px">Morning Check-In</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.5">Start the day with intention. Log every morning to keep your streak alive.</div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px">How are you feeling?</div>
+      <div style="display:flex;gap:8px;margin-bottom:18px" id="checkinMoodRow">
+        <button class="mood-btn" onclick="selectCheckinMood(this,'fired')"><span class="emoji" style="font-size:20px;display:block;margin-bottom:4px">😤</span><span style="font-size:10px">Fired up</span></button>
+        <button class="mood-btn" onclick="selectCheckinMood(this,'good')"><span class="emoji" style="font-size:20px;display:block;margin-bottom:4px">😊</span><span style="font-size:10px">Good</span></button>
+        <button class="mood-btn" onclick="selectCheckinMood(this,'neutral')"><span class="emoji" style="font-size:20px;display:block;margin-bottom:4px">😐</span><span style="font-size:10px">Neutral</span></button>
+        <button class="mood-btn" onclick="selectCheckinMood(this,'low')"><span class="emoji" style="font-size:20px;display:block;margin-bottom:4px">😓</span><span style="font-size:10px">Low</span></button>
+      </div>
+
+      <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div style="font-size:13px;font-weight:600;color:var(--text)">Confidence Score</div>
+          <div style="font-size:28px;font-weight:700;color:var(--gold);font-family:'Arial Narrow',Impact,Arial,sans-serif" id="checkinConfVal">7</div>
+        </div>
+        <input type="range" min="1" max="10" value="7" step="1" id="checkinConfSlider" style="width:100%"
+               oninput="document.getElementById('checkinConfVal').textContent=this.value">
+        <div style="display:flex;justify-content:space-between;margin-top:6px">
+          <span style="font-size:10px;color:var(--muted)">1 — Low</span>
+          <span style="font-size:10px;color:var(--muted)">10 — High</span>
+        </div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Type of Day</div>
+      <div style="display:flex;gap:8px;margin-bottom:14px" id="checkinTypeRow">
+        <button class="type-opt selected-game" id="ctGame" onclick="selectCheckinType('game')">🏒 Game</button>
+        <button class="type-opt" id="ctPractice" onclick="selectCheckinType('practice')">⛸️ Practice</button>
+        <button class="type-opt" id="ctRest" onclick="selectCheckinType('rest')">😴 Rest</button>
+        <button class="type-opt" id="ctOther" onclick="selectCheckinType('other')">📋 Other</button>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Morning Intention</div>
+      <textarea id="checkinReflection" style="width:100%;min-height:90px;border:0.5px solid var(--border);border-radius:12px;padding:13px;font-size:14px;font-family:-apple-system,sans-serif;resize:none;color:var(--text);background:var(--surface);outline:none;line-height:1.6;margin-bottom:14px"
+        placeholder="What is your intention for today? What will you focus on at practice or in training?"></textarea>
+
+      <div id="checkinTodayNote" style="display:none;background:var(--teal-light);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--teal);margin-bottom:12px;font-weight:500">
+        ✓ Already checked in this morning — saving will update your entry.
+      </div>
+
+      <button onclick="saveCheckin()" style="width:100%;padding:16px;background:var(--gold);border:none;border-radius:14px;font-size:15px;font-weight:700;color:var(--navy);cursor:pointer;font-family:-apple-system,sans-serif">
+        Save Morning Check-In ☀️
+      </button>
+    </div>
+
+    <!-- ── EVENING JOURNAL PANEL ── -->
+    <div id="panelEvening" style="display:none">
+      <div style="background:var(--navy2);border-radius:14px;padding:14px 16px;margin-bottom:16px;border:0.5px solid var(--navy3)">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:5px">Evening Reflection</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.5">The greats review every day. Two minutes of honest reflection tonight makes you better tomorrow.</div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Best Moment Today</div>
+      <textarea id="journalBest" style="width:100%;min-height:75px;border:0.5px solid var(--border);border-radius:12px;padding:13px;font-size:14px;font-family:-apple-system,sans-serif;resize:none;color:var(--text);background:var(--surface);outline:none;line-height:1.6;margin-bottom:14px"
+        placeholder="What went well today? On or off the ice..."></textarea>
+
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">What I Would Do Differently</div>
+      <textarea id="journalImprove" style="width:100%;min-height:75px;border:0.5px solid var(--border);border-radius:12px;padding:13px;font-size:14px;font-family:-apple-system,sans-serif;resize:none;color:var(--text);background:var(--surface);outline:none;line-height:1.6;margin-bottom:14px"
+        placeholder="Be honest with yourself. What would you change?"></textarea>
+
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">One Thing to Work On Tomorrow</div>
+      <textarea id="journalTomorrow" style="width:100%;min-height:65px;border:0.5px solid var(--border);border-radius:12px;padding:13px;font-size:14px;font-family:-apple-system,sans-serif;resize:none;color:var(--text);background:var(--surface);outline:none;line-height:1.6;margin-bottom:14px"
+        placeholder="One specific, actionable focus for tomorrow..."></textarea>
+
+      <!-- Energy and sleep rating -->
+      <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px">End of Day Ratings</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:13px;color:var(--text)">Energy Level</span>
+          <div style="display:flex;gap:4px" id="energyStars"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:13px;color:var(--text)">Overall Day</span>
+          <div style="display:flex;gap:4px" id="dayStars"></div>
+        </div>
+      </div>
+
+      <div id="journalSavedNote" style="display:none;background:var(--teal-light);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--teal);margin-bottom:12px;font-weight:500">
+        ✓ Evening journal already saved for today — saving will update it.
+      </div>
+
+      <button onclick="saveEveningJournal()" style="width:100%;padding:16px;background:var(--navy);border:1.5px solid var(--gold);border-radius:14px;font-size:15px;font-weight:700;color:var(--gold);cursor:pointer;font-family:-apple-system,sans-serif">
+        Save Evening Journal 🌙
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════ PROGRESS HISTORY ═══════ -->
+<div id="screen-progress" class="screen">
+  <div class="page-header">
+    <button class="back-btn" onclick="showScreen('screen-home')">‹</button>
+    <div class="page-title">MY PROGRESS</div>
+  </div>
+  <div style="padding:16px">
+
+    <!-- Summary stats -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px" id="progressStats"></div>
+
+    <!-- 7-day confidence chart -->
+    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:14px">Confidence — Last 7 Days</div>
+      <div style="display:flex;align-items:flex-end;gap:6px;height:80px" id="confChart"></div>
+      <div style="display:flex;gap:6px;margin-top:6px" id="confChartLabels"></div>
+    </div>
+
+    <!-- Posture trend -->
+    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px" id="postureTrendCard">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:14px">Posture Scans</div>
+      <div id="postureList"></div>
+    </div>
+
+    <!-- Journal history -->
+    <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Recent Entries</div>
+    <div id="journalHistory"></div>
+
+    <!-- Reset data button -->
+    <button onclick="confirmReset()" style="width:100%;margin-top:16px;padding:12px;background:transparent;border:0.5px solid var(--border);border-radius:12px;font-size:12px;color:var(--muted);cursor:pointer;font-family:-apple-system,sans-serif">
+      Reset All Data
+    </button>
+
+  </div>
+</div>
+
+<!-- ═══════ BOTTOM NAV ═══════ -->
+<!-- PWA Install Banner -->
+<div id="installBanner" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:388px;background:var(--navy2);border:1.5px solid var(--gold);border-radius:16px;padding:14px 16px;z-index:150;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,0.4)">
+  <div style="font-size:28px;flex-shrink:0">🏒</div>
+  <div style="flex:1">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:#fff;margin-bottom:2px">Install Rise Hockey</div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.5)">Add to your home screen for quick access</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+    <button onclick="installApp()" style="background:var(--gold);border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;color:var(--navy);cursor:pointer;font-family:'DM Sans',sans-serif;">Install</button>
+    <button onclick="dismissInstall()" style="background:transparent;border:none;font-size:11px;color:rgba(255,255,255,0.35);cursor:pointer;font-family:'DM Sans',sans-serif;">Not now</button>
+  </div>
+</div>
+
+<div class="bottom-nav">
+  <div class="nav-btn active" id="nav-home" onclick="showScreen('screen-home')">
+    <span class="nav-icon">🏠</span>
+    <span class="nav-lbl">Home</span>
+    <div class="nav-pip"></div>
+  </div>
+  <div class="nav-btn" id="nav-scan" onclick="showScreen('screen-scan')">
+    <span class="nav-icon">📸</span>
+    <span class="nav-lbl">Scan</span>
+    <div class="nav-pip"></div>
+  </div>
+  <div class="nav-btn" id="nav-cal" onclick="showScreen('screen-cal')">
+    <span class="nav-icon">📅</span>
+    <span class="nav-lbl">Schedule</span>
+    <div class="nav-pip"></div>
+  </div>
+  <div class="nav-btn" id="nav-pregame" onclick="showScreen('screen-pregame')">
+    <span class="nav-icon">⚡</span>
+    <span class="nav-lbl">Pre-Game</span>
+    <div class="nav-pip"></div>
+  </div>
+  <div class="nav-btn" id="nav-checkin" onclick="showScreen('screen-checkin')">
+    <span class="nav-icon">✏️</span>
+    <span class="nav-lbl">Check-In</span>
+    <div class="nav-pip"></div>
+  </div>
+  <div class="nav-btn" id="nav-progress" onclick="showScreen('screen-progress')">
+    <span class="nav-icon">📈</span>
+    <span class="nav-lbl">Progress</span>
+    <div class="nav-pip"></div>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<script>
+// ─── DATA ───
+
+const QUOTES = [
+  { text: "\u201CYou miss 100% of the shots you don't take.\u201D", author: "\u2014 Wayne Gretzky" },
+  { text: "\u201CThe highest compliment you can pay me is to say I work hard every day.\u201D", author: "\u2014 Wayne Gretzky" },
+  { text: "\u201CI skate to where the puck is going to be, not where it has been.\u201D", author: "\u2014 Wayne Gretzky" },
+  { text: "\u201CA good hockey player plays where the puck is. A great player plays where the puck is going to be.\u201D", author: "\u2014 Wayne Gretzky" },
+  { text: "\u201CDo you know what my favourite part of the game is? The opportunity to play.\u201D", author: "\u2014 Tom Brady" },
+  { text: "\u201CI didn't come this far to only come this far.\u201D", author: "\u2014 Tom Brady" },
+  { text: "\u201CA lot of times people blessed with talent never develop that attitude of relentless preparation.\u201D", author: "\u2014 Tom Brady" },
+  { text: "\u201CThe concentration and dedication are the deciding factor between who won and who lost.\u201D", author: "\u2014 Tom Brady" },
+  { text: "\u201COnce you know what failure feels like, determination chases success.\u201D", author: "\u2014 Kobe Bryant" },
+  { text: "\u201CGreat things come from hard work and perseverance. No excuses.\u201D", author: "\u2014 Kobe Bryant" },
+  { text: "\u201CIf you are afraid to fail, then you are probably going to fail.\u201D", author: "\u2014 Kobe Bryant" },
+  { text: "\u201CThe most important thing is to inspire people so they can be great in whatever they want to do.\u201D", author: "\u2014 Kobe Bryant" },
+  { text: "\u201CThe process is about what it takes to be the best you can be. Forget the scoreboard.\u201D", author: "\u2014 Nick Saban, 6x National Championship Coach" },
+  { text: "\u201CDo not look at the scoreboard. Focus only on this play, this moment.\u201D", author: "\u2014 Nick Saban" },
+  { text: "\u201CSuccess does not come to you. You go to it.\u201D", author: "\u2014 Nick Saban" },
+  { text: "\u201CElite players have elite habits. The choice is yours every single morning.\u201D", author: "\u2014 Urban Meyer, Championship Football Coach" },
+  { text: "\u201CThe separation is in the preparation.\u201D", author: "\u2014 Urban Meyer" },
+  { text: "\u201CPressure is something you feel when you do not know what you are doing.\u201D", author: "\u2014 Peyton Manning" },
+  { text: "\u201CI never left the field saying I could have done more to get ready.\u201D", author: "\u2014 Peyton Manning" },
+  { text: "\u201CAll successes begin with self-discipline. It starts with you.\u201D", author: "\u2014 Dwayne Johnson" },
+  { text: "\u201CBe the hardest worker in the room.\u201D", author: "\u2014 Dwayne Johnson" },
+  { text: "\u201CConsistent hard work gains success. Greatness will come.\u201D", author: "\u2014 Dwayne Johnson" },
+  { text: "\u201CThere may be people with more talent, but there is no excuse for anyone to work harder than you.\u201D", author: "\u2014 Derek Jeter, Yankees Captain" },
+  { text: "\u201CBe a team player, be professional, be on time and work hard.\u201D", author: "\u2014 Derek Jeter" },
+  { text: "\u201CNo matter how good you get, you can always get better. That is the exciting part.\u201D", author: "\u2014 Tiger Woods" },
+  { text: "\u201CThe key is not the will to win. It is the will to prepare to win.\u201D", author: "\u2014 Bobby Knight, Hall of Fame Basketball Coach" },
+  { text: "\u201CMental toughness is essential to success.\u201D", author: "\u2014 Bobby Knight" },
+  { text: "\u201CGreat players make their teammates better. That is the mark of a champion.\u201D", author: "\u2014 Geno Auriemma, 11x NCAA Champion Coach" },
+  { text: "\u201CThe toughest thing about success is you have to keep on being a success.\u201D", author: "\u2014 Geno Auriemma" },
+  { text: "\u201CThe most successful people in any field do the basics better than anyone else.\u201D", author: "\u2014 Alan Stein Jr., Elite Performance Coach" },
+  { text: "\u201CYou get what you tolerate. Raise your standards and your performance will follow.\u201D", author: "\u2014 Alan Stein Jr." },
+  { text: "\u201CWinning is doing the right thing when no one is watching.\u201D", author: "\u2014 Alan Stein Jr." },
+  { text: "\u201CIt is in your moments of decision that your destiny is shaped.\u201D", author: "\u2014 Tony Robbins" },
+  { text: "\u201CThe path to success is to take massive, determined action.\u201D", author: "\u2014 Tony Robbins" },
+  { text: "\u201CThe biggest thing is to believe. Believe in your teammates and believe in yourself.\u201D", author: "\u2014 Sidney Crosby" },
+  { text: "\u201CCompete for 60 minutes and let the score take care of itself.\u201D", author: "\u2014 Herb Brooks, 1980 US Olympic Coach" },
+  { text: "\u201COffence wins games. Defence wins championships.\u201D", author: "\u2014 Bear Bryant" },
+  { text: "\u201CThe will to win means nothing without the will to prepare.\u201D", author: "\u2014 Juma Ikangaa, Marathon World Record Holder" },
+  { text: "\u201CHard days are the best because that is when champions are made.\u201D", author: "\u2014 Gabby Douglas, Olympic Gold Medalist" },
+  { text: "\u201CTo give anything less than your best is to sacrifice the gift.\u201D", author: "\u2014 Steve Prefontaine" },
+  { text: "\u201CFall seven times, stand up eight.\u201D", author: "\u2014 Japanese Proverb" },
+  { text: "\u201CDiscipline is choosing between what you want now and what you want most.\u201D", author: "\u2014 Augusta F. Kantra" },
+  { text: "\u201CDream big. Work hard. Stay humble.\u201D", author: "\u2014 Unknown" },
+  { text: "\u201CTalent wins games, but teamwork and intelligence win championships.\u201D", author: "\u2014 Michael Jordan" },
+  { text: "\u201CYou have to expect things of yourself before you can do them.\u201D", author: "\u2014 Michael Jordan" },
+  { text: "\u201CThe only place success comes before work is in the dictionary.\u201D", author: "\u2014 Vince Lombardi" },
+  { text: "\u201CPain is temporary. Glory is forever.\u201D", author: "\u2014 Unknown" },
+  { text: "\u201CChampions keep playing until they get it right.\u201D", author: "\u2014 Billie Jean King" },
+  { text: "\u201CThe best players want the puck in the most important moments.\u201D", author: "\u2014 Mark Messier" },
+  { text: "\u201CDo not let what you cannot do interfere with what you can do.\u201D", author: "\u2014 John Wooden" },
+  { text: "\u201CPush yourself because no one else is going to do it for you.\u201D", author: "\u2014 Unknown" },
+];
+
+const FOCUS_WORDS = [
+  { word: 'COMPETE', sub: 'Physical battles, every shift. Own the gap.' },
+  { word: 'COMPOSED', sub: 'Read the play. Smart is fast.' },
+  { word: 'DOMINANT', sub: 'Be physical. Be first. Be loud.' },
+  { word: 'RELENTLESS', sub: 'No shift off. Every second counts.' },
+  { word: 'SHARP', sub: 'Quick reads, clean exits, accurate passes.' },
+  { word: 'CONFIDENT', sub: 'You have put in the work. Trust it.' },
+  { word: 'HUNGRY', sub: 'Want it more than they do.' },
+  { word: 'FEARLESS', sub: 'Play without hesitation. Commit to every move.' },
+  { word: 'PHYSICAL', sub: 'Win every battle along the boards today.' },
+  { word: 'FOCUSED', sub: 'One shift at a time. Present in every moment.' },
+  { word: 'WARRIOR', sub: 'Embrace the grind. Embrace the battle.' },
+  { word: 'DISCIPLINED', sub: 'Gap control. Positioning. No freelancing.' },
+  { word: 'EXPLOSIVE', sub: 'First step wins. Attack every loose puck.' },
+  { word: 'TOUGH', sub: 'Mental and physical toughness defines champions.' },
+  { word: 'SMART', sub: 'Anticipate the play. Be one step ahead.' },
+  { word: 'GRITTY', sub: 'Dig deeper than they expect. Outwork everyone.' },
+  { word: 'STRONG', sub: 'Own your body. Use your size and strength.' },
+  { word: 'ELITE', sub: 'Play the way elite defensemen play. Every shift.' },
+  { word: 'BELIEVE', sub: 'You belong here. You have earned this.' },
+  { word: 'EXECUTE', sub: 'Practice is preparation. Now execute the plan.' },
+  { word: 'CALM', sub: 'Slow the game down. See the ice clearly.' },
+  { word: 'LEAD', sub: 'Be the player teammates want beside them.' },
+];
+
+const BLOGS = [
+  {
+    tag: 'Pre-Game', tagClass: 'tag-pre',
+    title: 'The Pressure Paradox: Why the Best Defensemen Thrive When It\'s Hardest',
+    author: 'David Perron', authorRole: 'NHL Veteran · 18 Seasons',
+    authorInit: 'DP', authorDot: 'dot-navy',
+    readTime: '6 min read',
+    content: `
+      <p>There's a moment before every big game where the noise gets quiet. Your heart rate climbs. Your palms are damp. And then a voice inside says: <em>Is this too big for me?</em></p>
+      <p>Every elite defenseman I've played alongside has felt it. The difference between the ones who make it and the ones who don't isn't talent — it's what they do with that feeling.</p>
+      <div class="pull-quote"><p>"The moment the game feels too big is the moment you've forgotten why you started. Pressure is a privilege — it means you've put yourself somewhere that matters."</p></div>
+      <h3>Reframe the Feeling</h3>
+      <p>Anxiety and excitement are physiologically identical. Your brain doesn't know the difference between "I'm terrified" and "I'm ready." The elite players I watched — Pronger, Chara, Weber — they trained themselves to label the pre-game nerves as readiness, not fear.</p>
+      <p>When you feel it, say it out loud: <em>"This is excitement. I'm ready."</em> It sounds simple. It works.</p>
+      <h3>Your Gap Is Your Identity</h3>
+      <p>For defensemen, everything starts in the gap. Not your skate speed. Not your shot. Your ability to read the play, manage your gap, and decide in a fraction of a second whether to be physical or patient — that's what scouts watch.</p>
+      <div class="pull-quote"><p>"A great defenseman never gets beat the same way twice. He's always learning. Always adapting. That's not talent — that's character."</p></div>
+      <h3>The Night Before</h3>
+      <p>Visualize three scenarios: a clean defensive read where you force a turnover at the line. A difficult battle along the boards where you win the puck physically. And a mistake — yes, a mistake — where you recover well and refocus. Rehearsing the comeback is just as important as rehearsing the win.</p>
+      <div class="ai-insights">
+        <div class="ai-insights-title">🏒 Key Takeaways for Aleks</div>
+        <div class="ai-insight-item">Reframe pre-game nerves as readiness — say "I'm ready" not "I'm nervous"</div>
+        <div class="ai-insight-item">Gap control and physicality are your identity as a D-man — own them</div>
+        <div class="ai-insight-item">Visualize recovery from mistakes, not just success</div>
+        <div class="ai-insight-item">Pressure means you've earned your spot — treat it as a privilege</div>
+      </div>
+    `
+  },
+  {
+    tag: 'Mindset', tagClass: 'tag-mind',
+    title: 'Identity Before Outcome: How Michigan\'s Wolverines Build Unshakeable Confidence',
+    author: 'Brian Hermanhausen', authorRole: 'USAH Coach · Ann Arbor, MI',
+    authorInit: 'BH', authorDot: 'dot-gold',
+    readTime: '8 min read',
+    content: `
+      <p>At Michigan, players aren't told to win. They're told to become. There's a difference, and it changes everything about how you approach every practice, every rep, every shift.</p>
+      <p>When your identity is "I am a D1 defenseman at Michigan" — not "I want to be" but "I am, in progress" — your behaviours change. You train like it. You carry yourself like it. And eventually, the outcomes catch up to the identity.</p>
+      <div class="pull-quote"><p>"The question I ask every recruit: do you see yourself there, or do you hope to see yourself there? The word 'hope' tells me everything."</p></div>
+      <h3>The Identity Stack</h3>
+      <p>Build your identity in layers. Start with the non-negotiables: "I am disciplined. I show up." Then add the skill layer: "I am a physical, smart two-way defenseman." Then the goal layer: "I am on a path to D1 hockey." Each layer reinforces the next.</p>
+      <h3>What Michigan Scouts Actually Look For</h3>
+      <p>At every level from U15 AAA to USHL, coaches are watching for coachability, compete level, and Hockey IQ above all else. Skating can be developed. Size fills out. But a player who competes on every shift and communicates on the bench — that's rare, and they find you.</p>
+      <div class="pull-quote"><p>"Be so consistently competitive that scouts have no choice but to notice. You don't get discovered — you make yourself undeniable."</p></div>
+      <div class="ai-insights">
+        <div class="ai-insights-title">🏒 Key Takeaways for Aleks</div>
+        <div class="ai-insight-item">Act as a D1 player NOW — training, habits, and mindset all reflect it</div>
+        <div class="ai-insight-item">Coachability and compete level are the primary scouting criteria at your age</div>
+        <div class="ai-insight-item">Build your identity in layers — skills, character, then goals</div>
+        <div class="ai-insight-item">Consistency over flashes — scouts watch 3 games, not 3 shifts</div>
+      </div>
+    `
+  },
+  {
+    tag: 'Reflection', tagClass: 'tag-post',
+    title: 'Losing Isn\'t Failing: What Young Athletes Get Wrong About Bad Games',
+    author: 'James Brown', authorRole: 'Sports Psychologist · Halifax, NS',
+    authorInit: 'JB', authorDot: 'dot-teal',
+    readTime: '5 min read',
+    content: `
+      <p>After a loss, two types of athletes leave the rink. The first rehashes every mistake, lets it sit in their gut overnight, and carries it into the next practice. The second reviews what happened, extracts the lesson, and lets it go. The second athlete gets better faster.</p>
+      <p>This isn't about not caring. The athletes who improve fastest often care the most — they just know where the energy should go.</p>
+      <div class="pull-quote"><p>"Every game is a data point on the road to who you're becoming. The question is: are you collecting the data, or just absorbing the emotion?"</p></div>
+      <h3>The 24-Hour Rule</h3>
+      <p>Give yourself 24 hours to feel whatever you feel — disappointment, frustration, even anger. Those emotions are real and they matter. But after 24 hours, the only question that's allowed is: <em>What did I learn?</em></p>
+      <h3>The Three-Question Post-Game Review</h3>
+      <p>Elite athletes at every level use a structured post-game review. Here are the only three questions that matter:</p>
+      <p><strong>1. What did I do well?</strong> — You always did something well. Name it specifically.</p>
+      <p><strong>2. What would I do differently?</strong> — Not "what did I do wrong" — differently. It's forward-facing.</p>
+      <p><strong>3. What's one thing I'll work on this week?</strong> — Specific, actionable, owned by you.</p>
+      <div class="pull-quote"><p>"The greats don't replay their mistakes — they replay their corrections. Your brain learns the last thing you showed it."</p></div>
+      <div class="ai-insights">
+        <div class="ai-insights-title">🏒 Key Takeaways for Aleks</div>
+        <div class="ai-insight-item">Feel the emotion after a loss — then release it after 24 hours</div>
+        <div class="ai-insight-item">Use the three-question review after every game, win or lose</div>
+        <div class="ai-insight-item">Your brain learns from what you replay — replay your corrections</div>
+        <div class="ai-insight-item">Consistent post-game reflection is what separates developing players from stagnant ones</div>
+      </div>
+    `
+  },
+  {
+    tag: 'Pre-Game', tagClass: 'tag-pre',
+    title: '10 Things Elite Defencemen Do Differently on Game Day',
+    author: 'Hockey Canada Development Staff', authorRole: 'National Development Program',
+    authorInit: 'HC', authorDot: 'dot-navy',
+    readTime: '4 min read',
+    content: `
+      <p>They aren't necessarily the most talented players on the ice. But they are the most prepared — mentally and physically — before puck drop. Here's what separates elite young defensemen on game day.</p>
+      <h3>The Morning</h3>
+      <p><strong>1. They protect their energy.</strong> No draining social media, no negative conversations. They're selective about inputs on game day.</p>
+      <p><strong>2. They activate their body.</strong> Not a full workout — 20 minutes of movement, skating drills, stretching. Get the blood moving and the nervous system primed.</p>
+      <p><strong>3. They eat on schedule.</strong> Pre-game meal 3–4 hours before puck drop. Complex carbs, lean protein. Not experimenting on game day.</p>
+      <div class="pull-quote"><p>"They've already played the game in their heads before they step on the ice. Visualization isn't optional — it's preparation."</p></div>
+      <h3>Pre-Game Mental Routine</h3>
+      <p><strong>4. They visualize their first 5 shifts.</strong> Gap control, first physical battle, first breakout pass. See it succeed before it happens.</p>
+      <p><strong>5. They have a focus word.</strong> One word. COMPETE. SHARP. DOMINANT. It becomes an anchor when the game gets chaotic.</p>
+      <p><strong>6. They review their opponent.</strong> Who are the dangerous forwards? What's their favourite move? How do they come out of their zone? Preparation creates confidence.</p>
+      <h3>Locker Room to Ice</h3>
+      <p><strong>7. They lead with body language.</strong> Shoulders back. Head up. Handshakes with purpose. Other players feel your energy before the game starts.</p>
+      <p><strong>8. They communicate early.</strong> First 2 minutes of warm-up, they're talking to linemates, calling for pucks. Vocal early, vocal all night.</p>
+      <p><strong>9. They have a reset routine.</strong> After a bad shift, they have a 3-breath reset before the next one. No carry-over. Every shift is new.</p>
+      <p><strong>10. They play the next shift, not the last one.</strong> The puck drops in the present. Not in the replay of the goal you just gave up.</p>
+      <div class="ai-insights">
+        <div class="ai-insights-title">🏒 Key Takeaways for Aleks</div>
+        <div class="ai-insight-item">Protect your energy on game day — be selective about inputs</div>
+        <div class="ai-insight-item">Visualize your first 5 shifts specifically — gap, battle, breakout</div>
+        <div class="ai-insight-item">Body language in the locker room sets the tone for everyone</div>
+        <div class="ai-insight-item">3-breath reset between bad shifts — no carry-over, ever</div>
+      </div>
+    `
+  },,
+  {
+    tag: 'Physique', tagClass: 'tag-pre',
+    title: 'Building a D1 Body: What Hockey Scouts Look For at 14-16',
+    author: 'Coach Jeremy Shore', authorRole: 'Hockey Strength Coach · NSCA Certified',
+    authorInit: 'JS', authorDot: 'dot-gold',
+    readTime: '7 min read',
+    content: '<p>At 14 you are not supposed to look like an NHL player. But the athletes who eventually make D1 rosters share one trait at your age: they are already building their body with intention. Not randomly lifting, not doing whatever. A structured plan with a specific outcome.</p>' +
+    '<div class="pull-quote"><p>"The athletes who make it to D1 are not the strongest at 14. They are the most coachable and the most consistent."</p></div>' +
+    '<h3>What Scouts See in Your Body</h3>' +
+    '<p>At U15 and U16 evaluations, scouts are not expecting a fully developed physique. They are watching for: functional strength in battles, skating stride power from the hip and glute chain, and the athleticism that suggests you will fill out into a physically dominant player by 17 or 18.</p>' +
+    '<p>The specific areas that D1 programs develop are the posterior chain (glutes, hamstrings, lower back), rotational core power for shot and battle strength, and shoulder stability for physical play.</p>' +
+    '<h3>Your Priority List at This Age</h3>' +
+    '<p><strong>1. Hip mobility first.</strong> Tight hips kill skating stride length and gap control. 10 minutes of hip mobility daily changes your game faster than any weight you can lift right now.</p>' +
+    '<p><strong>2. Single leg strength.</strong> Split squats, Bulgarian split squats, step-ups. Hockey is played on one leg at a time. Train that way.</p>' +
+    '<p><strong>3. Shoulder stability.</strong> Face pulls, band pull-aparts, external rotation work. Protects you in physical play and builds the base for future pressing strength.</p>' +
+    '<p><strong>4. Core anti-rotation.</strong> Pallof press, dead bugs, plank variations. A strong anti-rotational core is what keeps you upright when a 200-pound forward runs into you.</p>' +
+    '<div class="ai-insights"><div class="ai-insights-title">Key Takeaways for Aleks</div>' +
+    '<div class="ai-insight-item">Hip mobility daily — 10 minutes changes your stride and gap control immediately</div>' +
+    '<div class="ai-insight-item">Single leg exercises are more hockey-specific than bilateral squats at this stage</div>' +
+    '<div class="ai-insight-item">Consistency over 6 months beats intensity for 6 weeks every time</div>' +
+    '<div class="ai-insight-item">Your body will respond fast at 14 — this is the best time to build the foundation</div></div>'
+  },
+  {
+    tag: 'Posture', tagClass: 'tag-mind',
+    title: 'Fix Your Posture, Change Your Game: The Defenseman Body Blueprint',
+    author: 'Dr. Sarah Mitchell', authorRole: 'Sports Physiotherapist · Hockey Canada',
+    authorInit: 'SM', authorDot: 'dot-teal',
+    readTime: '6 min read',
+    content: '<p>Poor posture is not just an aesthetic issue for hockey players — it directly limits skating speed, reduces reach, creates injury vulnerability, and signals to opponents that you can be pushed around. Good posture is a competitive weapon.</p>' +
+    '<div class="pull-quote"><p>"A defenseman with great posture and body alignment skates faster, hits harder, and recovers quicker. It starts from the ground up."</p></div>' +
+    '<h3>The Three Posture Patterns That Kill Hockey Performance</h3>' +
+    '<p><strong>Forward head posture.</strong> When the head sits forward of the shoulders, the neck and upper back work overtime. On ice this means less peripheral vision, slower reaction time, and reduced upper body power in battles. Fix: chin tucks, neck retraction exercises, and reducing phone screen time with the head dropped.</p>' +
+    '<p><strong>Rounded shoulders.</strong> The most common issue in young players. Tight chest, weak upper back. On ice this means less reach, reduced shot power, and vulnerability in physical play. Fix: face pulls 3 times per week, wall slides, and doorframe chest stretches daily.</p>' +
+    '<p><strong>Anterior pelvic tilt.</strong> The low back arches excessively, shutting off the glutes. On ice this means slow first step, reduced skating power, and vulnerable lower back. Fix: glute activation work before every skate, hip flexor stretching, and dead bug exercises for core control.</p>' +
+    '<h3>Daily Posture Routine for Aleks</h3>' +
+    '<p>Five minutes every morning before anything else: 10 chin tucks, 10 wall slides, 30-second doorframe chest stretch each side, 10 glute bridges, 30-second hip flexor stretch each side. Do this for 30 days and your posture on and off the ice changes permanently.</p>' +
+    '<div class="ai-insights"><div class="ai-insights-title">Key Takeaways for Aleks</div>' +
+    '<div class="ai-insight-item">Forward head posture reduces peripheral vision — critical for a defenseman reading the play</div>' +
+    '<div class="ai-insight-item">Rounded shoulders reduce reach and shot power — fix with face pulls 3x per week</div>' +
+    '<div class="ai-insight-item">5 minute morning posture routine done daily outperforms any once-weekly correction</div>' +
+    '<div class="ai-insight-item">Great posture signals confidence and athleticism before you even touch the puck</div></div>'
+  },
+  {
+    tag: 'Mindset', tagClass: 'tag-mind',
+    title: 'The Morning Routine of Elite Junior Hockey Players',
+    author: 'Ryan Walker', authorRole: 'Mental Performance Coach · OHL',
+    authorInit: 'RW', authorDot: 'dot-navy',
+    readTime: '5 min read',
+    content: '<p>The difference between a good junior player and an elite one is often not what happens at the rink. It is what happens in the two hours before they arrive. The morning sets the tone for everything that follows.</p>' +
+    '<div class="pull-quote"><p>"Win the morning and you win the day. The best players I have coached treat their morning like a training session."</p></div>' +
+    '<h3>The Non-Negotiable Morning Stack</h3>' +
+    '<p><strong>Hydration before anything else.</strong> 500ml of water within 5 minutes of waking. Your brain and muscles are dehydrated after sleep. Performance starts with hydration.</p>' +
+    '<p><strong>Movement within 20 minutes.</strong> Not a workout necessarily — but movement. 10 minutes of mobility, a short walk, or a body-weight circuit. This triggers the physiological systems you need for a high-performance day.</p>' +
+    '<p><strong>Intention setting.</strong> Before you look at your phone, ask yourself: what is the one thing I am going to do today that moves me toward my goal? Write it down or say it out loud. This is not soft — it is what the best athletes in the world do.</p>' +
+    '<p><strong>Nutrition within 45 minutes.</strong> Protein and complex carbohydrates. Your body has been fasting for 8 hours. Give it fuel it can actually use.</p>' +
+    '<h3>The Evening Matters Too</h3>' +
+    '<p>Elite junior athletes protect their sleep like it is a training asset — because it is. Screen time off 30 minutes before bed. A brief reflection on what went well and what to improve. The athletes who journal even two sentences each night improve faster than those who do not.</p>' +
+    '<div class="ai-insights"><div class="ai-insights-title">Key Takeaways for Aleks</div>' +
+    '<div class="ai-insight-item">Hydrate first thing — 500ml of water before anything else</div>' +
+    '<div class="ai-insight-item">Set one clear intention before touching your phone each morning</div>' +
+    '<div class="ai-insight-item">Evening reflection — even 2 sentences — accelerates improvement</div>' +
+    '<div class="ai-insight-item">Sleep is training. Protect it like you protect practice time</div></div>'
+  },];
+
+// ─── EVENTS DATA ───
+// ─── PERSISTENT DATA LAYER (localStorage) ───
+
+function loadData() {
+  try {
+    return {
+      journalEntries: JSON.parse(localStorage.getItem('rh_journal') || '[]'),
+      postureScans:   JSON.parse(localStorage.getItem('rh_posture') || '[]'),
+      events:         JSON.parse(localStorage.getItem('rh_events')  || '[]'),
+    };
+  } catch(e) { return { journalEntries: [], postureScans: [], events: [] }; }
+}
+
+function saveJournalEntry(entry) {
+  const data = loadData();
+  data.journalEntries.unshift(entry); // newest first
+  localStorage.setItem('rh_journal', JSON.stringify(data.journalEntries));
+}
+
+function savePostureScan(scan) {
+  const data = loadData();
+  data.postureScans.unshift(scan);
+  localStorage.setItem('rh_posture', JSON.stringify(data.postureScans));
+}
+
+function saveEvents(evts) {
+  localStorage.setItem('rh_events', JSON.stringify(evts));
+}
+
+// ─── COMPUTED STATS ───
+
+// Get local date string YYYY-MM-DD without UTC conversion issues
+function localDateStr(date) {
+  const d = date || new Date();
+  return d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0');
+}
+
+function calcStreak(entries) {
+  if (!entries.length) return 0;
+  const today = localDateStr();
+  let streak = 0;
+  for (let i = 0; i < 365; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = localDateStr(d);
+    if (entries.some(e => e.date === dateStr)) {
+      streak++;
+    } else if (i === 0) {
+      // Haven't checked in today yet — streak continues from yesterday
+      continue;
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
+function calcAvgConfidence(entries) {
+  if (!entries.length) return null;
+  const last7 = entries.slice(0, 7);
+  const avg = last7.reduce((s, e) => s + (e.confidence || 0), 0) / last7.length;
+  return Math.round(avg * 10) / 10;
+}
+
+function updateHomeStats() {
+  const { journalEntries, postureScans } = loadData();
+  const streak = calcStreak(journalEntries);
+  const avgConf = calcAvgConfidence(journalEntries);
+  const lastPosture = postureScans.length ? postureScans[0].overallScore + '%' : '—';
+
+  document.getElementById('homeStreak').textContent = streak;
+  document.getElementById('topStreakBadge').textContent = '🔥 ' + streak;
+  document.getElementById('homeConfScore').textContent = avgConf !== null ? avgConf : '—';
+  document.getElementById('homePosture').textContent = lastPosture;
+}
+
+// ─── EVENTS (loaded from localStorage) ───
+let events = loadData().events;
+let selectedEventType = 'game';
+let currentMonth = new Date();
+let currentBlogScreen = null;
+let quoteIndex = 0;
+let cameraStream = null;
+let capturedImageBase64 = null;
+let facingMode = 'environment';
+
+// ─── HELPERS ───
+
+// ── OFFLINE / ONLINE DETECTION ──
+function updateOnlineStatus() {
+  const note = document.getElementById('offlineNote');
+  if (note) note.style.display = navigator.onLine ? 'none' : 'block';
+}
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(n => n.classList.remove('active'));
+  const navMap = { 'screen-home': 'nav-home', 'screen-scan': 'nav-scan', 'screen-cal': 'nav-cal', 'screen-pregame': 'nav-pregame', 'screen-postgame': null, 'screen-checkin': 'nav-checkin', 'screen-progress': 'nav-progress' };
+  if (navMap[id]) document.getElementById(navMap[id]).classList.add('active');
+  window.scrollTo(0, 0);
+  document.getElementById('app').scrollTop = 0;
+  if (id === 'screen-cal') { events = loadData().events; renderCalendar(); }
+  if (id === 'screen-home') { events = loadData().events; updateHomeStats(); checkGameAlert(); }
+  if (id === 'screen-progress') { renderProgress(); }
+  if (id === 'screen-checkin') { checkTodayCheckin(); }
+  if (id === 'screen-pregame') { events = loadData().events; initPreGame(); }
+  if (id === 'screen-scan') {
+    updateOnlineStatus();
+    checkGeminiKeySetup();
+    setTimeout(function() { if (typeof startCamera === 'function') startCamera(); }, 100);
+  } else {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(t => t.stop());
+      cameraStream = null;
+    }
+  }
+}
+
+function nextQuote() {
+  var activeQ = getActiveQuotes();
+  quoteIndex = (quoteIndex + 1) % activeQ.length;
+  document.getElementById('qText').textContent = activeQ[quoteIndex].text;
+  document.getElementById('qAuthor').textContent = activeQ[quoteIndex].author;
+}
+
+// ─── GAME ALERT ───
+function checkGameAlert() {
+  const today = new Date();
+  const todayStr = localDateStr(today);
+  const gameToday = events.find(e => e.type === 'game' && e.date === todayStr);
+  const gameTomorrow = events.find(e => e.type === 'game' && (() => { const d = new Date(today); d.setDate(d.getDate()+1); return e.date === localDateStr(d); })());
+  const alertEl = document.getElementById('gameAlert');
+
+  if (gameToday) {
+    alertEl.style.display = 'block';
+    alertEl.innerHTML = `<div class="game-alert-pre">
+      <div class="game-alert-label">Game Day 🏒</div>
+      <div class="game-alert-title">${gameToday.name}</div>
+      <div class="game-alert-sub">${gameToday.location} · ${formatTime(gameToday.time)}</div>
+      <div class="game-alert-row">
+        <span style="font-size:12px;color:rgba(255,255,255,0.4)">Aleks — you're ready.</span>
+        <button class="alert-cta cta-gold" onclick="showScreen('screen-pregame')">Pre-Game Prep →</button>
+      </div>
+    </div>`;
+  } else {
+    alertEl.style.display = 'none';
+  }
+}
+
+function formatTime(t) {
+  if (!t) return '';
+  const [h, m] = t.split(':');
+  const hr = parseInt(h);
+  return `${hr > 12 ? hr-12 : hr}:${m} ${hr >= 12 ? 'PM' : 'AM'}`;
+}
+
+// ─── CALENDAR ───
+function changeMonth(dir) {
+  currentMonth.setMonth(currentMonth.getMonth() + dir);
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('calMonthLabel').textContent = `${months[currentMonth.getMonth()]} ${currentMonth.getFullYear()}`;
+
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  days.forEach(d => { const el = document.createElement('div'); el.className = 'cal-day-label'; el.textContent = d; grid.appendChild(el); });
+
+  const year = currentMonth.getFullYear();
+  const month = currentMonth.getMonth();
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const today = new Date();
+  const todayStr = localDateStr(today);
+
+  for (let i = 0; i < firstDay; i++) {
+    const empty = document.createElement('div'); empty.className = 'cal-day empty'; grid.appendChild(empty);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const hasGame = events.some(e => e.date === dateStr && e.type === 'game');
+    const hasEvent = events.some(e => e.date === dateStr);
+    const isToday = dateStr === todayStr;
+
+    const el = document.createElement('div');
+    el.className = 'cal-day' + (isToday ? ' today' : '') + (hasGame ? ' game-day' : (hasEvent ? ' has-event' : ''));
+    el.textContent = d;
+    grid.appendChild(el);
+  }
+
+  renderEventList();
+}
+
+function renderEventList() {
+  const list = document.getElementById('eventList');
+  list.innerHTML = '';
+  const sorted = [...events].sort((a,b) => a.date.localeCompare(b.date));
+  sorted.forEach(e => {
+    const isGame = e.type === 'game';
+    const isPractice = e.type === 'practice';
+    const d = new Date(e.date + 'T12:00:00');
+    const dateLabel = d.toLocaleDateString('en-CA', { month:'short', day:'numeric' });
+    list.innerHTML += `
+      <div class="event-item" onclick="openEventOptions(${e.id})">
+        <div class="event-dot-col">
+          <div class="event-type-dot ${isGame ? 'etd-game' : isPractice ? 'etd-practice' : 'etd-other'}"></div>
+        </div>
+        <div class="event-info">
+          <div class="event-name">${e.name}</div>
+          <div class="event-meta">${dateLabel} · ${formatTime(e.time)} · ${e.location}</div>
+        </div>
+        <span class="event-type-badge ${isGame ? 'etb-game' : isPractice ? 'etb-practice' : 'etb-other'}">${e.type}</span>
+      </div>`;
+  });
+}
+
+function openEventOptions(id) {
+  const ev = events.find(e => e.id === id);
+  if (!ev) return;
+  const today = localDateStr();
+  const isPast = ev.date < today;
+
+  if (ev.type === 'game') {
+    const action = isPast
+      ? confirm(`${ev.name}\n${ev.date} · ${formatTime(ev.time)}\n\nOpen Post-Game check-in for this event?\n\nCancel to delete this event.`)
+      : confirm(`${ev.name}\n${ev.date} · ${formatTime(ev.time)}\n\nOpen Pre-Game prep for this event?\n\nCancel to delete this event.`);
+
+    if (action) {
+      if (isPast) {
+        document.getElementById('postgameEventName').textContent = ev.name;
+        showScreen('screen-postgame');
+      } else {
+        showScreen('screen-pregame'); // initPreGame() fires via showScreen
+      }
+    } else {
+      if (confirm(`Delete "${ev.name}"?`)) {
+        events = events.filter(e => e.id !== id);
+        saveEvents(events);
+        renderCalendar();
+      }
+    }
+  } else {
+    if (confirm(`Delete "${ev.name}"?`)) {
+      events = events.filter(e => e.id !== id);
+      saveEvents(events);
+      renderCalendar();
+    }
+  }
+}
+
+function toggleAddForm() {
+  const form = document.getElementById('addEventForm');
+  form.classList.toggle('show');
+  if (form.classList.contains('show')) form.scrollIntoView({ behavior: 'smooth' });
+}
+
+function selectType(type) {
+  selectedEventType = type;
+  ['game','practice','other'].forEach(t => {
+    const btn = document.getElementById('type' + t.charAt(0).toUpperCase() + t.slice(1));
+    btn.className = 'type-opt';
+    if (t === type) btn.classList.add('selected-' + t);
+  });
+}
+
+function saveEvent() {
+  const name = document.getElementById('evtName').value.trim();
+  const date = document.getElementById('evtDate').value;
+  const time = document.getElementById('evtTime').value;
+  const loc = document.getElementById('evtLocation').value.trim() || 'TBD';
+  if (!name || !date) { alert('Please enter an event name and date.'); return; }
+  events.push({ id: Date.now(), name, date, time, location: loc, type: selectedEventType });
+  saveEvents(events);
+  document.getElementById('evtName').value = '';
+  document.getElementById('evtDate').value = '';
+  document.getElementById('evtTime').value = '';
+  document.getElementById('evtLocation').value = '';
+  document.getElementById('addEventForm').classList.remove('show');
+  renderCalendar();
+}
+
+// ─── PRE-GAME ───
+
+function loadPregameData(dateStr) {
+  try { return JSON.parse(localStorage.getItem('rh_pregame_' + dateStr) || 'null'); }
+  catch(e) { return null; }
+}
+
+function savePregameData(dateStr, data) {
+  localStorage.setItem('rh_pregame_' + dateStr, JSON.stringify(data));
+}
+
+function initPreGame() {
+  const today = localDateStr();
+  const eventsData = loadData().events;
+
+  // Find next upcoming game (today or future)
+  const upcoming = eventsData
+    .filter(e => e.type === 'game' && e.date >= today)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  const nextGame = upcoming[0] || null;
+
+  if (nextGame) {
+    const gameDate = new Date(nextGame.date + 'T12:00:00');
+    const isToday = nextGame.date === today;
+    const isTomorrow = (() => {
+      const t = new Date(); t.setDate(t.getDate() + 1);
+      return nextGame.date === localDateStr(t);
+    })();
+    const dateLabel = isToday ? 'Today' : isTomorrow ? 'Tomorrow' : gameDate.toLocaleDateString('en-CA', { weekday: 'long', month: 'short', day: 'numeric' });
+
+    document.getElementById('pregameLabel').textContent = isToday ? '🏒 Game Day — Mental Prep' : '⚡ Pre-Game Preparation';
+    document.getElementById('pregameEventName').textContent = nextGame.name;
+    document.getElementById('pregameEventTime').textContent = `${dateLabel} · ${formatTime(nextGame.time)} · ${nextGame.location}`;
+    document.getElementById('postgameEventName').textContent = nextGame.name;
+
+    // Restore saved prep for this game's date
+    const saved = loadPregameData(nextGame.date);
+    if (saved) {
+      // Restore checklist
+      if (saved.checks) {
+        saved.checks.forEach((checked, i) => {
+          const el = document.getElementById('rc' + i);
+          if (el) el.classList.toggle('checked', checked);
+        });
+      }
+      // Restore notes
+      if (saved.notes) document.getElementById('pregameNotes').value = saved.notes;
+      // Restore focus word
+      if (saved.focusWord) {
+        document.getElementById('focusWord').textContent = saved.focusWord;
+        const fw = FOCUS_WORDS.find(f => f.word === saved.focusWord);
+        if (fw) document.getElementById('focusSub').textContent = fw.sub;
+      }
+    } else {
+      // Fresh — random focus word
+      const fw = FOCUS_WORDS[Math.floor(Math.random() * FOCUS_WORDS.length)];
+      document.getElementById('focusWord').textContent = fw.word;
+      document.getElementById('focusSub').textContent = fw.sub;
+      // Clear checklist
+      for (let i = 0; i < 6; i++) {
+        const el = document.getElementById('rc' + i);
+        if (el) el.classList.remove('checked');
+      }
+      document.getElementById('pregameNotes').value = '';
+    }
+  } else {
+    document.getElementById('pregameLabel').textContent = 'Pre-Game Mental Prep';
+    document.getElementById('pregameEventName').textContent = 'No upcoming games';
+    document.getElementById('pregameEventTime').textContent = 'Add a game to your Schedule to activate pre-game prep';
+    // Still show a focus word
+    const fw = FOCUS_WORDS[Math.floor(Math.random() * FOCUS_WORDS.length)];
+    document.getElementById('focusWord').textContent = fw.word;
+    document.getElementById('focusSub').textContent = fw.sub;
+  }
+}
+
+function toggleCheck(el, id) {
+  el.classList.toggle('checked');
+  // Auto-save checklist state immediately
+  autoSavePregame();
+}
+
+function autoSavePregame() {
+  const today = localDateStr();
+  const eventsData = loadData().events;
+  const nextGame = eventsData
+    .filter(e => e.type === 'game' && e.date >= today)
+    .sort((a, b) => a.date.localeCompare(b.date))[0];
+
+  if (!nextGame) return;
+  const checks = [];
+  for (let i = 0; i < 6; i++) {
+    const el = document.getElementById('rc' + i);
+    checks.push(el ? el.classList.contains('checked') : false);
+  }
+  const existing = loadPregameData(nextGame.date) || {};
+  savePregameData(nextGame.date, {
+    ...existing,
+    checks,
+    focusWord: document.getElementById('focusWord').textContent,
+    eventName: nextGame.name,
+    date: nextGame.date
+  });
+}
+
+function savePregame() {
+  const today = localDateStr();
+  const eventsData = loadData().events;
+  const nextGame = eventsData
+    .filter(e => e.type === 'game' && e.date >= today)
+    .sort((a, b) => a.date.localeCompare(b.date))[0];
+
+  const notes = document.getElementById('pregameNotes').value.trim();
+  const checks = [];
+  for (let i = 0; i < 6; i++) {
+    const el = document.getElementById('rc' + i);
+    checks.push(el ? el.classList.contains('checked') : false);
+  }
+  const checkedCount = checks.filter(Boolean).length;
+
+  const data = {
+    date: nextGame ? nextGame.date : today,
+    eventName: nextGame ? nextGame.name : 'General Prep',
+    savedAt: Date.now(),
+    focusWord: document.getElementById('focusWord').textContent,
+    checks,
+    checkedCount,
+    notes,
+  };
+
+  if (nextGame) {
+    savePregameData(nextGame.date, data);
+    // Also save as a journal entry so it shows in progress history
+    const jData = loadData();
+    const filtered = jData.journalEntries.filter(e => !(e.date === nextGame.date && e.type === 'pregame'));
+    filtered.unshift({
+      date: nextGame.date,
+      timestamp: Date.now(),
+      type: 'pregame',
+      mood: 'fired',
+      confidence: null,
+      reflection: notes || `Pre-game prep completed for ${nextGame.name}. ${checkedCount}/6 checklist items done. Focus word: ${data.focusWord}.`,
+      eventName: nextGame.name,
+      checks,
+    });
+    localStorage.setItem('rh_journal', JSON.stringify(filtered));
+  }
+
+  alert(`Pre-game prep saved! ✓ ${checkedCount}/6 checklist · Focus: ${data.focusWord}\n\nYou're ready, Aleks. Go compete.`);
+}
+
+// ─── POST-GAME ───
+function selectResult(result, el) {
+  document.querySelectorAll('.result-opt').forEach(o => {
+    o.className = 'result-opt';
+  });
+  el.classList.add('sel-' + result);
+
+  const quotes = {
+    win: '"Winning is a habit. Watch your thoughts, they become your habits." — Vince Lombardi',
+    loss: '"I\'ve missed more than 9,000 shots in my career. I\'ve lost almost 300 games. I\'ve failed over and over again. And that is why I succeed." — Michael Jordan',
+    tie: '"In sports, mental toughness is the ability to perform at your best regardless of the score." — Peter Jensen'
+  };
+  const parts = quotes[result].split(' — ');
+  document.getElementById('postQuoteText').textContent = '"' + parts[0].replace(/"/g, '') + '"';
+  document.querySelector('#postGameQuoteBlock div:last-child').textContent = '— ' + (parts[1] || '');
+}
+
+function initStars() {
+  ['Gap','Phys','IQ','Conf','Comm'].forEach(k => {
+    const container = document.getElementById('rating' + k);
+    container.innerHTML = '';
+    for (let i = 1; i <= 5; i++) {
+      const star = document.createElement('span');
+      star.className = 'star';
+      star.textContent = '★';
+      star.dataset.val = i;
+      star.onclick = function() {
+        const val = parseInt(this.dataset.val);
+        container.querySelectorAll('.star').forEach((s,idx) => {
+          s.classList.toggle('lit', idx < val);
+        });
+      };
+      container.appendChild(star);
+    }
+  });
+}
+
+function submitPostGame() {
+  const reflection = document.getElementById('postReflection').value.trim();
+  if (!reflection) { alert('Add a reflection before saving — even a few lines helps you grow.'); return; }
+
+  // Collect star ratings
+  const ratings = {};
+  ['Gap','Phys','IQ','Conf','Comm'].forEach(k => {
+    const lit = document.getElementById('rating'+k).querySelectorAll('.star.lit').length;
+    ratings[k.toLowerCase()] = lit;
+  });
+
+  // Use the daily confidence slider as the primary confidence score
+  const confScore = parseInt(document.getElementById('dailyConfSlider').value) || 7;
+
+  // Get selected result
+  const resultEl = document.querySelector('.result-opt.sel-win, .result-opt.sel-loss, .result-opt.sel-tie');
+  const result = resultEl ? (resultEl.classList.contains('sel-win') ? 'win' : resultEl.classList.contains('sel-loss') ? 'loss' : 'tie') : null;
+
+  const entry = {
+    date: localDateStr(),
+    timestamp: Date.now(),
+    type: 'postgame',
+    reflection,
+    result,
+    ratings,
+    confidence: confScore,
+    eventName: document.getElementById('postgameEventName').textContent
+  };
+
+  saveJournalEntry(entry);
+  updateHomeStats();
+
+  // Reset form
+  document.getElementById('postReflection').value = '';
+  document.getElementById('dailyConfSlider').value = 7;
+  document.getElementById('dailyConfVal').textContent = '7';
+  document.querySelectorAll('.result-opt').forEach(o => o.className = 'result-opt');
+  document.querySelectorAll('.rating-stars .star').forEach(s => s.classList.remove('lit'));
+
+  alert('Game review saved! Great work taking time to reflect. Champions review every game. 💪');
+  showScreen('screen-home');
+}
+
+// ─── BLOG ───
+function openBlog(idx) {
+  const blog = BLOGS[idx];
+  currentBlogScreen = document.querySelector('.screen.active')?.id || 'screen-home';
+  document.getElementById('blogScreenTitle').textContent = blog.tag.toUpperCase();
+  document.getElementById('blogContent').innerHTML = `
+    <div class="blog-cover">
+      <div class="blog-cover-tag">${blog.tag}</div>
+      <div class="blog-cover-title">${blog.title}</div>
+      <div class="blog-cover-author">${blog.author} · ${blog.authorRole} · ${blog.readTime}</div>
+    </div>
+    <div class="blog-body">${blog.content}</div>
+  `;
+  showScreen('screen-blog');
+}
+
+function closeBlog() {
+  showScreen(currentBlogScreen || 'screen-home');
+}
+
+// ─── AI POSTURE SCAN ───
+// ─── CAMERA ───
+
+async function startCamera() {
+  const video = document.getElementById('cameraVideo');
+  const noPermEl = document.getElementById('noPermission');
+
+  // Reset UI — hide error card, show camera container
+  noPermEl.classList.remove('show');
+  document.getElementById('cameraContainer').style.display = 'block';
+  document.getElementById('camBtnRow').style.display = 'flex';
+  video.style.display = 'block';
+
+  // On some Android PWAs mediaDevices isn't ready instantly — poll briefly
+  let attempts = 0;
+  while ((!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) && attempts < 10) {
+    await new Promise(r => setTimeout(r, 200));
+    attempts++;
+  }
+
+  // Only bail out after genuinely waiting and it's still not available
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    showPermissionError('not-supported');
+    return;
+  }
+
+  try {
+    if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); }
+
+    // Try with preferred constraints first, fall back to simple {video:true} if device rejects
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: facingMode }, width: { ideal: 1280 }, height: { ideal: 1920 } },
+        audio: false
+      });
+    } catch (constraintErr) {
+      // Retry with bare minimum constraints — works on all Android devices
+      cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    }
+    video.srcObject = cameraStream;
+    // Camera is working — hide permission card, show camera UI
+    document.getElementById('noPermission').classList.remove('show');
+    document.getElementById('cameraContainer').style.display = 'block';
+    document.getElementById('camBtnRow').style.display = 'flex';
+    video.style.display = 'block';
+    document.getElementById('capturedCanvas').style.display = 'none';
+    document.getElementById('cameraGuideOverlay').style.display = 'flex';
+    document.getElementById('cameraHint').style.display = 'block';
+    noPermEl.classList.remove('show');
+    document.getElementById('captureBtn').style.display = 'flex';
+    document.getElementById('retakeBtn').style.display = 'none';
+    document.getElementById('scanBtn').disabled = true;
+    document.getElementById('aiResultCard').classList.remove('show');
+    capturedImageBase64 = null;
+    video.style.transform = facingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)';
+  } catch (err) {
+    video.style.display = 'none';
+    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+      showPermissionError('denied');
+    } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+      showPermissionError('no-camera');
+    } else {
+      showPermissionError('unknown');
+    }
+  }
+}
+
+function showPermissionError(type) {
+  const noPermEl = document.getElementById('noPermission');
+  const cameraContainer = document.getElementById('cameraContainer');
+  const camBtnRow = document.getElementById('camBtnRow');
+  const btn = document.getElementById('permRequestBtn');
+  const instructions = document.getElementById('permInstructions');
+  const steps = document.getElementById('permSteps');
+  const title = document.getElementById('permTitle');
+  const msg = document.getElementById('permMsg');
+  const icon = document.getElementById('permIcon');
+
+  // Show permission card, hide camera UI
+  noPermEl.classList.add('show');
+  cameraContainer.style.display = 'none';
+  camBtnRow.style.display = 'none';
+  document.getElementById('scanBtn').disabled = true;
+
+  // Reset button visibility
+  btn.style.display = 'block';
+  btn.disabled = false;
+  btn.textContent = 'Allow Camera Access';
+  btn.onclick = () => requestCameraPermission();
+
+  // Detect browser
+  const ua = navigator.userAgent;
+  const isChrome = /Chrome/.test(ua) && !/Edg/.test(ua);
+  const isFirefox = /Firefox/.test(ua);
+  const isSafari = /Safari/.test(ua) && !/Chrome/.test(ua);
+  const isEdge = /Edg/.test(ua);
+  const isIOS = /iPhone|iPad/.test(ua);
+  const isAndroid = /Android/.test(ua);
+
+  if (type === 'denied') {
+    icon.textContent = '🔒';
+    title.textContent = 'Camera Blocked';
+    msg.textContent = 'Camera access was blocked. You\'ll need to re-enable it manually — it only takes 30 seconds.';
+    btn.textContent = 'Try Again After Enabling';
+    instructions.style.display = 'block';
+    const chromeShortcut = document.getElementById('chromeSettingsShortcut');
+    chromeShortcut.style.display = (isChrome && !isAndroid && !isIOS) ? 'block' : 'none';
+
+    if (isIOS && isSafari) {
+      steps.innerHTML =
+        '1. Open the <b style="color:#fff">Settings</b> app on your iPhone/iPad<br>' +
+        '2. Scroll down and tap <b style="color:#fff">Safari</b><br>' +
+        '3. Under <b style="color:#fff">Settings for Websites</b>, tap <b style="color:#fff">Camera</b><br>' +
+        '4. Set it to <b style="color:#fff">Allow</b><br>' +
+        '5. Come back here and tap <b style="color:#fff">Try Again</b>';
+    } else if (isIOS && isChrome) {
+      steps.innerHTML =
+        '1. Open the <b style="color:#fff">Settings</b> app on your iPhone<br>' +
+        '2. Scroll down and tap <b style="color:#fff">Chrome</b><br>' +
+        '3. Toggle <b style="color:#fff">Camera</b> to on (green)<br>' +
+        '4. Come back here and tap <b style="color:#fff">Try Again</b>';
+    } else if (isAndroid && isChrome) {
+      steps.innerHTML =
+        '1. Look at Chrome\'s address bar — tap the <b style="color:#fff">tune icon ⊟</b> or <b style="color:#fff">info circle ⓘ</b> on the left side<br>' +
+        '&nbsp;&nbsp;&nbsp;<i style="color:rgba(255,255,255,0.45)">(Chrome removed the lock icon in 2023 — it\'s now a sliders or info symbol)</i><br>' +
+        '2. Tap <b style="color:#fff">Permissions</b><br>' +
+        '3. Tap <b style="color:#fff">Camera</b> → select <b style="color:#fff">Allow</b><br>' +
+        '4. Tap <b style="color:#fff">Try Again</b> below<br><br>' +
+        '<b style="color:var(--gold)">Can\'t find the icon?</b> Try this instead:<br>' +
+        '1. Open Chrome → tap the <b style="color:#fff">⋮ menu</b> (top right)<br>' +
+        '2. Go to <b style="color:#fff">Settings → Site Settings → Camera</b><br>' +
+        '3. Find this site and set it to <b style="color:#fff">Allow</b>';
+    } else if (isChrome) {
+      const isLocalFile = location.protocol === 'file:';
+      if (isLocalFile) {
+        steps.innerHTML =
+          '<b style="color:var(--gold)">Chrome blocks camera for local files</b> — the address bar icon and info circle won\'t show camera permissions here. There are two ways to fix it:<br><br>' +
+          '<b style="color:#fff">Fix 1 — Chrome Settings:</b><br>' +
+          '1. Open a new Chrome tab<br>' +
+          '2. Click the address bar, paste the address below, and hit Enter:<br>' +
+          '<div id="chromeSettingsUrl" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:8px 12px;margin:6px 0;display:flex;align-items:center;justify-content:space-between;gap:8px">' +
+          '<span style="font-size:12px;color:var(--gold);font-family:monospace;word-break:break-all">chrome://settings/content/camera</span>' +
+          '<button onclick="copySettingsUrl()" style="background:var(--gold);border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;color:var(--navy);cursor:pointer;white-space:nowrap;font-family:\'DM Sans\',sans-serif" id="copyUrlBtn">Copy</button>' +
+          '</div>' +
+          '3. Under <b style="color:#fff">Not allowed to use your camera</b>, find this file and click the <b style="color:#fff">🗑 trash icon</b> next to it<br>' +
+          '4. Come back here and tap <b style="color:#fff">Try Again</b><br><br>' +
+          '<b style="color:#fff">Fix 2 — Open in Firefox:</b><br>' +
+          'Firefox allows camera on local files with no extra setup. Just open this HTML file in Firefox and it will prompt you normally.';
+      } else {
+        steps.innerHTML =
+          '<b style="color:rgba(255,255,255,0.5);font-size:12px">Note: Chrome replaced the lock icon 🔒 in 2023</b><br><br>' +
+          '1. Look left of the address bar for a <b style="color:#fff">tune icon ⊟</b> or <b style="color:#fff">info circle ⓘ</b><br>' +
+          '2. Click it → next to <b style="color:#fff">Camera</b> click the dropdown → select <b style="color:#fff">Allow</b><br>' +
+          '3. Reload the page when prompted, then tap <b style="color:#fff">Try Again</b><br><br>' +
+          '<b style="color:var(--gold)">Don\'t see the icon?</b> Use Chrome Settings instead:<br>' +
+          '1. Open a new tab → paste <b style="color:var(--gold);font-size:12px">chrome://settings/content/camera</b><br>' +
+          '2. Under <b style="color:#fff">Not allowed</b>, find this site → click the <b style="color:#fff">trash icon 🗑</b><br>' +
+          '3. Return here and tap <b style="color:#fff">Try Again</b>';
+      }
+    } else if (isFirefox) {
+      steps.innerHTML =
+        '1. Look for a <b style="color:#fff">camera icon 📷</b> or <b style="color:#fff">crossed-out camera</b> in the address bar<br>' +
+        '2. Click it → select <b style="color:#fff">Allow Camera</b><br>' +
+        '3. Tap <b style="color:#fff">Try Again</b> below<br><br>' +
+        '<b style="color:var(--gold)">Don\'t see the icon?</b><br>' +
+        '1. Click the <b style="color:#fff">shield icon 🛡</b> in the address bar<br>' +
+        '2. Click <b style="color:#fff">Connection secure → More information</b><br>' +
+        '3. Go to the <b style="color:#fff">Permissions</b> tab → set Camera to <b style="color:#fff">Allow</b>';
+    } else if (isEdge) {
+      const isLocalFile = location.protocol === 'file:';
+      if (isLocalFile) {
+        steps.innerHTML =
+          '<b style="color:var(--gold)">This file is open locally</b> — Edge\'s address bar icon won\'t appear for local files.<br><br>' +
+          '1. Open a new tab → paste into address bar:<br>' +
+          '&nbsp;&nbsp;&nbsp;<b style="color:var(--gold);font-size:12px">edge://settings/content/camera</b><br>' +
+          '2. Under <b style="color:#fff">Block</b>, find this file → remove it<br>' +
+          '3. Return here and tap <b style="color:#fff">Try Again</b>';
+      } else {
+        steps.innerHTML =
+          '1. Look left of the address bar for a <b style="color:#fff">lock 🔒</b>, <b style="color:#fff">tune ⊟</b>, or <b style="color:#fff">info ⓘ icon</b><br>' +
+          '2. Click it → click <b style="color:#fff">Permissions for this site</b><br>' +
+          '3. Set <b style="color:#fff">Camera</b> to <b style="color:#fff">Allow</b><br>' +
+          '4. Tap <b style="color:#fff">Try Again</b> below';
+      }
+    } else if (isSafari) {
+      steps.innerHTML =
+        '1. In the top menu bar click <b style="color:#fff">Safari → Settings for This Website</b><br>' +
+        '2. Next to <b style="color:#fff">Camera</b> select <b style="color:#fff">Allow</b><br>' +
+        '3. Tap <b style="color:#fff">Try Again</b> below';
+    } else {
+      steps.innerHTML =
+        '1. Look left of the address bar for a <b style="color:#fff">tune ⊟</b>, <b style="color:#fff">info ⓘ</b>, or <b style="color:#fff">lock 🔒 icon</b><br>' +
+        '2. Click it and find the <b style="color:#fff">Camera</b> permission<br>' +
+        '3. Change it to <b style="color:#fff">Allow</b><br>' +
+        '4. Tap <b style="color:#fff">Try Again</b> below';
+    }
+  } else if (type === 'no-camera') {
+    icon.textContent = '🎥';
+    title.textContent = 'No Camera Found';
+    msg.textContent = 'No camera was detected on this device. Open the app on your phone to use the posture scan.';
+    btn.style.display = 'none';
+    instructions.style.display = 'none';
+  } else if (type === 'not-supported') {
+    icon.textContent = '⚠️';
+    title.textContent = 'Camera Unavailable';
+    const isAndroid = /Android/.test(navigator.userAgent);
+    if (isAndroid) {
+      msg.textContent = 'Camera access isn\'t available yet. If you just installed the app, close it fully and reopen it — Android sometimes needs a fresh start for camera permissions.';
+      btn.textContent = 'Try Again';
+      btn.style.display = 'block';
+      btn.onclick = () => { startCamera(); };
+      instructions.style.display = 'block';
+      steps.innerHTML =
+        '<b style="color:#fff">If Try Again doesn\'t work:</b><br>' +
+        '1. Close this app completely (swipe it away)<br>' +
+        '2. Go to your phone <b style="color:#fff">Settings → Apps → Chrome</b><br>' +
+        '3. Tap <b style="color:#fff">Permissions → Camera → Allow</b><br>' +
+        '4. Reopen Rise Hockey and try again';
+    } else {
+      msg.textContent = 'Your browser doesn\'t support camera access. Open this file in Chrome or Safari on your phone.';
+      btn.style.display = 'none';
+      instructions.style.display = 'none';
+    }
+  } else {
+    icon.textContent = '📷';
+    title.textContent = 'Camera Unavailable';
+    msg.textContent = 'Something went wrong. Make sure no other app is using the camera, then try again.';
+    btn.textContent = 'Try Again';
+    instructions.style.display = 'none';
+  }
+}
+
+function openChromeSettings() {
+  window.open('chrome://settings/content/camera', '_blank');
+  // Chrome blocks navigation to chrome:// from web pages, so show a copy prompt instead
+  const url = 'chrome://settings/content/camera';
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => {
+      alert('Copied to clipboard!\n\nOpen a new Chrome tab and paste this in the address bar:\n\n' + url);
+    }).catch(() => {
+      alert('Open a new Chrome tab and paste this in the address bar:\n\n' + url);
+    });
+  } else {
+    alert('Open a new Chrome tab and type this in the address bar:\n\nchrome://settings/content/camera');
+  }
+}
+
+function copySettingsUrl() {
+  const url = 'chrome://settings/content/camera';
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = document.getElementById('copyUrlBtn');
+      if (btn) { btn.textContent = 'Copied!'; setTimeout(() => { btn.textContent = 'Copy'; }, 2000); }
+    });
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    const btn = document.getElementById('copyUrlBtn');
+    if (btn) { btn.textContent = 'Copied!'; setTimeout(() => { btn.textContent = 'Copy'; }, 2000); }
+  }
+}
+
+async function requestCameraPermission() {
+  document.getElementById('permRequestBtn').textContent = 'Requesting...';
+  document.getElementById('permRequestBtn').disabled = true;
+  await startCamera();
+  document.getElementById('permRequestBtn').textContent = 'Allow Camera Access';
+  document.getElementById('permRequestBtn').disabled = false;
+}
+
+function captureFrame() {
+  const video = document.getElementById('cameraVideo');
+  const canvas = document.getElementById('capturedCanvas');
+  if (!video.videoWidth) return;
+
+  // Resize to max 800px wide — Anthropic's limit is ~5MB, full phone camera is 3-5MB
+  // 800px wide at JPEG 0.85 quality is ~150-300KB, well within limits
+  const MAX_DIM = 800;
+  const ratio = Math.min(MAX_DIM / video.videoWidth, MAX_DIM / video.videoHeight, 1);
+  const w = Math.round(video.videoWidth * ratio);
+  const h = Math.round(video.videoHeight * ratio);
+
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+
+  // Un-mirror front camera so AI sees correct orientation
+  if (facingMode === 'user') {
+    ctx.translate(w, 0);
+    ctx.scale(-1, 1);
+  }
+  ctx.drawImage(video, 0, 0, w, h);
+
+  // JPEG at 0.82 quality — good clarity, small file
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+  capturedImageBase64 = dataUrl.split(',')[1];
+
+  // Log size for debugging
+  const sizeKB = Math.round((capturedImageBase64.length * 3) / 4 / 1024);
+  console.log(`[Scan] Image captured: ${w}×${h}px, ~${sizeKB}KB base64`);
+
+  // Stop camera stream, show frozen canvas
+  if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+  video.style.display = 'none';
+  canvas.style.display = 'block';
+  document.getElementById('cameraGuideOverlay').style.display = 'none';
+  document.getElementById('cameraHint').style.display = 'none';
+  document.getElementById('captureBtn').style.display = 'none';
+  document.getElementById('retakeBtn').style.display = 'flex';
+  document.getElementById('scanBtn').disabled = false;
+}
+
+function retakePhoto() {
+  capturedImageBase64 = null;
+  document.getElementById('aiResultCard').classList.remove('show');
+  startCamera();
+}
+
+function flipCamera() {
+  facingMode = facingMode === 'environment' ? 'user' : 'environment';
+  startCamera();
+}
+
+
+
+// ─── GEMINI API KEY MANAGEMENT ───
+var GEMINI_KEY_DEFAULT = '';  // Enter via the in-app setup — keeps your quota safe
+
+function getGeminiKey() {
+  return localStorage.getItem('rh_gemini_key') || GEMINI_KEY_DEFAULT;
+}
+
+function saveGeminiKey() {
+  var key = document.getElementById('geminiKeyInput').value.trim();
+  var errEl = document.getElementById('apiKeyError');
+  errEl.style.display = 'none';
+  if (!key || key.length < 10) {
+    errEl.textContent = 'Please enter a valid API key.';
+    errEl.style.display = 'block';
+    return;
+  }
+  localStorage.setItem('rh_gemini_key', key);
+  document.getElementById('apiKeySetup').style.display = 'none';
+  alert('API key updated!');
+}
+
+function checkGeminiKeySetup() {
+  // Key is always available — hide the setup box
+  var setup = document.getElementById('apiKeySetup');
+  if (setup) setup.style.display = 'none';
+}
+
+async function runAIScan() {
+  var btn = document.getElementById('scanBtn');
+
+  if (!capturedImageBase64) {
+    alert('No photo captured. Tap the camera button first.');
+    return;
+  }
+  if (!navigator.onLine) {
+    document.getElementById('offlineNote').style.display = 'block';
+    alert('You are offline. Connect to Wi-Fi or mobile data to run the AI analysis.');
+    return;
+  }
+  var apiKey = getGeminiKey();
+  if (!apiKey) {
+    document.getElementById('apiKeySetup').style.display = 'block';
+    document.getElementById('apiKeySetup').scrollIntoView({ behavior: 'smooth' });
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Analysing...';
+  document.getElementById('aiResultCard').classList.remove('show');
+
+  var scanAnim = document.getElementById('scanAnim');
+  scanAnim.classList.add('show');
+
+  var statuses = ['Reading body landmarks...','Analysing posture alignment...','Checking shoulder & hip balance...','Assessing athletic stance...','Evaluating body composition...','Generating coaching report...'];
+  var si = 0;
+  var statusInterval = setInterval(function() {
+    if (si < statuses.length) document.getElementById('scanStatus').textContent = statuses[si++];
+  }, 1400);
+
+  var prompt =
+    'You are an elite athletic development coach and certified strength and conditioning specialist.' +
+    ' You are analysing a photo of Aleks Kikuchi, a 14-year-old left-handed ice hockey defenseman from Nova Scotia, Canada.' +
+    ' He plays U15 Tier 2 with the Sackville Avalanche and is working toward D1 college hockey.' +
+    ' His development priorities are gap control, physicality, and hockey IQ.' +
+    '\n\nAnalyse this full-body standing photo as thoroughly as possible.' +
+    ' Look at every visible aspect: posture, body alignment, muscle development, body composition, athletic build, and physical presence.' +
+    '\n\nReturn a JSON object with this exact structure.' +
+    ' IMPORTANT: All string values must use only straight ASCII text.' +
+    ' Replace any apostrophe with a space. Do not use quotes inside string values.' +
+    ' Do not add line breaks inside string values.' +
+    '\n\n{' +
+    '"overallScore": <integer 0-100 based on athletic posture quality>,' +
+    '"headline": "<5 to 8 word honest assessment>",' +
+    '"subhead": "<one sentence summary of overall physical presentation>",' +
+    '"metrics": [' +
+    '{"name": "Head and Neck Alignment", "score": <0-100>, "status": "<good|warn|low>", "note": "<specific observation about head position and neck posture>"},' +
+    '{"name": "Shoulder Balance and Level", "score": <0-100>, "status": "<good|warn|low>", "note": "<are shoulders level, any rounding or elevation difference>"},' +
+    '{"name": "Spine Curvature and Core", "score": <0-100>, "status": "<good|warn|low>", "note": "<lumbar curve, thoracic posture, core engagement>"},' +
+    '{"name": "Hip Alignment and Stability", "score": <0-100>, "status": "<good|warn|low>", "note": "<hip tilt, pelvis position, balance>"},' +
+    '{"name": "Knee and Ankle Position", "score": <0-100>, "status": "<good|warn|low>", "note": "<knee tracking, ankle stability, foot position>"},' +
+    '{"name": "Athletic Stance and Balance", "score": <0-100>, "status": "<good|warn|low>", "note": "<overall balance, weight distribution, readiness>"},' +
+    '{"name": "Upper Body Development", "score": <0-100>, "status": "<good|warn|low>", "note": "<visible chest, shoulder, and arm muscle development for age>"},' +
+    '{"name": "Overall Body Composition", "score": <0-100>, "status": "<good|warn|low>", "note": "<lean mass vs body fat assessment for athletic performance>"}' +
+    '],' +
+    '"bodyComposition": {' +
+    '"build": "<lean|athletic|stocky|developing>",' +
+    '"visibleStrengths": "<describe what muscle groups or physical attributes look well developed>",' +
+    '"developmentAreas": "<describe what physical areas would benefit most from targeted training>"' +
+    '},' +
+    '"postureFindings": "<3 to 4 sentences describing the most important specific postural observations. Name exact body parts. Be precise and coach-like.>",' +
+    '"hockeyImpact": "<3 to 4 sentences on how these posture and physique findings directly affect on-ice performance including gap control, physicality in battles, skating stride, and reach.>",' +
+    '"trainingRecommendations": [' +
+    '"<specific exercise or drill recommendation with brief explanation>",' +
+    '"<specific exercise or drill recommendation with brief explanation>",' +
+    '"<specific exercise or drill recommendation with brief explanation>",' +
+    '"<specific exercise or drill recommendation with brief explanation>"' +
+    '],' +
+    '"strengthHighlight": "<one sentence describing the single biggest physical asset Aleks has for hockey>",' +
+    '"d1Outlook": "<2 to 3 sentences giving an honest assessment of his physical development relative to D1 hockey goals. Be encouraging but truthful.>",' +
+    '"physiqueFixes": ["<most important daily corrective exercise for the biggest issue observed>","<second corrective fix>","<third corrective fix>"],' +
+    '"coachingPlan": "<3 to 4 sentences of a concrete weekly coaching plan with specific exercises sets and reps tailored to a 14-year-old hockey defenseman. Make it immediately actionable.>"' +
+    '}' +
+    '\n\nBe specific and genuinely analytical. Give scores that reflect what you actually observe.' +
+    ' A score of 85 or above means genuinely good. 65 to 84 means developing. Below 65 means needs real work.' +
+    ' Do not default every metric to the same score.';
+
+  try {
+    var endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+    var response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey
+      },
+      body: JSON.stringify({
+        contents: [{ parts: [
+          { inline_data: { mime_type: 'image/jpeg', data: capturedImageBase64 } },
+          { text: prompt }
+        ]}],
+        generationConfig: { temperature: 0.3, maxOutputTokens: 4096 }
+      })
+    });
+
+    clearInterval(statusInterval);
+    scanAnim.classList.remove('show');
+
+    if (!response.ok) {
+      var errData = await response.json().catch(function() { return {}; });
+      var errMsg = (errData.error && errData.error.message) ? errData.error.message : ('HTTP ' + response.status);
+
+      if (response.status === 429) {
+        // Quota exceeded — clear stored key, show setup with instructions
+        localStorage.removeItem('rh_gemini_key');
+        var setup = document.getElementById('apiKeySetup');
+        var errEl = document.getElementById('apiKeyError');
+        setup.style.display = 'block';
+        setup.scrollIntoView({ behavior: 'smooth' });
+        errEl.textContent = 'Quota exceeded on this key. Get a new free key (takes 1 minute) and paste it below.';
+        errEl.style.display = 'block';
+        throw new Error('Quota exceeded. Please get a new free Gemini key from aistudio.google.com');
+      }
+
+      if (response.status === 400 || response.status === 403) {
+        localStorage.removeItem('rh_gemini_key');
+        document.getElementById('apiKeySetup').style.display = 'block';
+        document.getElementById('apiKeyError').textContent = 'Key rejected. Please get a new key from aistudio.google.com';
+        document.getElementById('apiKeyError').style.display = 'block';
+        throw new Error('Invalid API key. Please enter a new Gemini key.');
+      }
+
+      throw new Error('Gemini error: ' + errMsg);
+    }
+
+    var data = await response.json();
+    var rawText = '';
+    try { rawText = data.candidates[0].content.parts[0].text; } catch(e) {}
+    if (!rawText) throw new Error('Empty response from Gemini. Please try again.');
+
+    console.log('[Scan] Raw response length:', rawText.length);
+
+    // Strategy 1: strip markdown fences and try direct parse
+    var clean = rawText
+      .replace(/^```(?:json)?\s*/im, '')
+      .replace(/\s*```\s*$/m, '')
+      .trim();
+
+    // Pre-sanitise common Gemini issues before any parse attempt
+    function sanitiseJSON(str) {
+      return str
+        // Smart quotes to straight quotes
+        .replace(/[\u2018\u2019]/g, "'")
+        .replace(/[\u201C\u201D]/g, '"')
+        // Remove trailing commas before } or ]
+        .replace(/,(\s*[}\]])/g, '$1')
+        // Fix unescaped newlines inside JSON strings
+        .replace(/"([^"]*?)"/g, function(match) {
+          return match.replace(/\n/g, ' ').replace(/\r/g, ' ').replace(/\t/g, ' ');
+        });
+    }
+
+    var result = null;
+
+    // Strategy 2: try parse as-is
+    try { result = JSON.parse(sanitiseJSON(clean)); } catch(e1) {
+
+      // Strategy 3: find outermost { } block
+      var startBrace = clean.indexOf('{');
+      var endBrace = clean.lastIndexOf('}');
+      if (startBrace !== -1 && endBrace > startBrace) {
+        var extracted = clean.substring(startBrace, endBrace + 1);
+        try { result = JSON.parse(sanitiseJSON(extracted)); } catch(e2) {
+
+          // Strategy 4: fix common issues — unescaped quotes in values,
+          // trailing commas, newlines inside strings
+          var fixed = sanitiseJSON(extracted)
+            .replace(/:\s*"((?:[^"\\]|\\.)*)"/g, function(match) {
+              return match.replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+            });
+          try { result = JSON.parse(fixed); } catch(e3) {
+
+            // Strategy 5: manually extract each field we need
+            console.warn('[Scan] Full parse failed, extracting fields manually');
+            result = extractFieldsManually(clean);
+          }
+        }
+      } else {
+        result = extractFieldsManually(clean);
+      }
+    }
+
+    if (!result || typeof result !== 'object') {
+      throw new Error('Could not read AI response. Please try the scan again.');
+    }
+
+    renderScanResults(result);
+
+  } catch(err) {
+    clearInterval(statusInterval);
+    scanAnim.classList.remove('show');
+    console.error('[Scan]', err.message);
+    alert('Scan failed: ' + err.message);
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Analyse with AI Posture Coach';
+}
+
+// Fallback: extract individual fields from Gemini response using regex
+// Used when JSON.parse fails due to special characters in text values
+function extractFieldsManually(text) {
+  function getStr(key) {
+    var re = new RegExp('"' + key + '"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)"', 'i');
+    var m = text.match(re);
+    return m ? m[1].replace(/\\n/g, ' ').replace(/\\"/g, '"') : '';
+  }
+  function getNum(key) {
+    var re = new RegExp('"' + key + '"\\s*:\\s*(\\d+)', 'i');
+    var m = text.match(re);
+    return m ? parseInt(m[1]) : 75;
+  }
+  function getArr(key) {
+    // Find array content between [ and ]
+    var re = new RegExp('"' + key + '"\\s*:\\s*\\[([^\\]]*?)\\]', 'is');
+    var m = text.match(re);
+    if (!m) return [];
+    return m[1].match(/"((?:[^"\\]|\\.)*)"/g)
+      ? m[1].match(/"((?:[^"\\]|\\.)*)"/g).map(function(s) { return s.replace(/^"|"$/g,''); })
+      : [];
+  }
+
+  // Extract metrics array
+  var metrics = [];
+  var metricNames = ['Head & Neck Alignment','Shoulder Balance & Level','Spine Curvature & Core',
+    'Hip Alignment & Stability','Knee & Ankle Position','Athletic Stance & Balance',
+    'Upper Body Development','Overall Body Composition'];
+  var metricBlocks = text.match(/\{[^{}]*"score"\s*:\s*\d+[^{}]*\}/g) || [];
+  metricBlocks.forEach(function(block, idx) {
+    var nameM = block.match(/"name"\s*:\s*"([^"]+)"/);
+    var scoreM = block.match(/"score"\s*:\s*(\d+)/);
+    var statusM = block.match(/"status"\s*:\s*"([^"]+)"/);
+    var noteM = block.match(/"note"\s*:\s*"([^"]+)"/);
+    metrics.push({
+      name: nameM ? nameM[1] : (metricNames[idx] || 'Metric ' + (idx+1)),
+      score: scoreM ? parseInt(scoreM[1]) : 75,
+      status: statusM ? statusM[1] : 'warn',
+      note: noteM ? noteM[1] : ''
+    });
+  });
+
+  // If no metric blocks found, create defaults
+  if (!metrics.length) {
+    metricNames.forEach(function(name) {
+      metrics.push({ name: name, score: 75, status: 'warn', note: 'See coaching notes below' });
+    });
+  }
+
+  var build = text.match(/"build"\s*:\s*"([^"]+)"/) || [];
+
+  return {
+    overallScore: getNum('overallScore') || 75,
+    headline: getStr('headline') || 'Analysis Complete',
+    subhead: getStr('subhead') || 'See coaching notes below',
+    metrics: metrics,
+    bodyComposition: {
+      build: build[1] || 'athletic',
+      visibleStrengths: getStr('visibleStrengths') || '',
+      developmentAreas: getStr('developmentAreas') || ''
+    },
+    postureFindings: getStr('postureFindings') || '',
+    hockeyImpact: getStr('hockeyImpact') || '',
+    trainingRecommendations: getArr('trainingRecommendations'),
+    strengthHighlight: getStr('strengthHighlight') || '',
+    d1Outlook: getStr('d1Outlook') || ''
+  };
+}
+
+function renderScanResults(result) {
+  document.getElementById('overallScore').textContent = result.overallScore || '—';
+  document.getElementById('resultHeading').textContent = result.headline || 'Analysis Complete';
+  document.getElementById('resultSubhead').textContent = result.subhead || '';
+
+  var container = document.getElementById('metricsContainer');
+  container.innerHTML = '';
+  (result.metrics || []).forEach(function(m) {
+    var cls = m.status === 'good' ? 'mv-good mf-good' : m.status === 'warn' ? 'mv-warn mf-warn' : 'mv-low mf-low';
+    var valCls = cls.split(' ')[0];
+    var fillCls = cls.split(' ')[1];
+    var noteHtml = m.note ? '<div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4">' + m.note + '</div>' : '';
+    container.innerHTML +=
+      '<div class="metric-row" style="margin-bottom:14px">' +
+        '<div class="metric-top">' +
+          '<span class="metric-name">' + m.name + '</span>' +
+          '<span class="metric-val ' + valCls + '">' + m.score + '%</span>' +
+        '</div>' +
+        '<div class="metric-bar"><div class="metric-fill ' + fillCls + '" style="width:' + m.score + '%"></div></div>' +
+        noteHtml +
+      '</div>';
+  });
+
+  var feedbackEl = document.getElementById('aiFeedbackText');
+  var html = '';
+
+  if (result.postureFindings) {
+    html += '<div style="margin-bottom:12px">' +
+      '<div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin-bottom:5px">Posture Findings</div>' +
+      '<div style="font-size:13px;line-height:1.6;color:var(--navy2)">' + result.postureFindings + '</div></div>';
+  }
+  if (result.bodyComposition) {
+    var bc = result.bodyComposition;
+    html += '<div style="margin-bottom:12px">' +
+      '<div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin-bottom:5px">Body Composition</div>';
+    if (bc.build) html += '<div style="display:inline-block;background:var(--navy);color:var(--gold);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase;margin-bottom:6px">' + bc.build + '</div>';
+    if (bc.visibleStrengths) html += '<div style="font-size:13px;line-height:1.6;color:var(--navy2);margin-bottom:4px">&#x1F4AA; ' + bc.visibleStrengths + '</div>';
+    if (bc.developmentAreas) html += '<div style="font-size:13px;line-height:1.6;color:var(--navy2)">&#x1F3AF; ' + bc.developmentAreas + '</div>';
+    html += '</div>';
+  }
+  if (result.hockeyImpact) {
+    html += '<div style="margin-bottom:12px">' +
+      '<div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin-bottom:5px">&#x1F3D2; Hockey Impact</div>' +
+      '<div style="font-size:13px;line-height:1.6;color:var(--navy2)">' + result.hockeyImpact + '</div></div>';
+  }
+  if (result.strengthHighlight) {
+    html += '<div style="background:var(--teal-light);border-radius:10px;padding:10px 12px;margin-bottom:12px">' +
+      '<div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--teal);margin-bottom:4px">Strength Highlight</div>' +
+      '<div style="font-size:13px;color:#0F6E56;line-height:1.5">' + result.strengthHighlight + '</div></div>';
+  }
+  if (result.trainingRecommendations && result.trainingRecommendations.length) {
+    html += '<div style="margin-bottom:12px">' +
+      '<div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Training Recommendations</div>';
+    result.trainingRecommendations.forEach(function(rec, idx) {
+      html += '<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:6px">' +
+        '<div style="background:var(--navy);color:var(--gold);font-size:10px;font-weight:700;min-width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-top:1px">' + (idx+1) + '</div>' +
+        '<div style="font-size:13px;color:var(--navy2);line-height:1.5">' + rec + '</div></div>';
+    });
+    html += '</div>';
+  }
+  if (result.d1Outlook) {
+    html += '<div style="background:var(--ice);border-radius:10px;padding:10px 12px;margin-bottom:12px">' +
+      '<div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--navy);margin-bottom:4px">D1 Development Outlook</div>' +
+      '<div style="font-size:13px;color:var(--navy2);line-height:1.5;font-style:italic">' + result.d1Outlook + '</div></div>';
+  }
+  if (result.physiqueFixes && result.physiqueFixes.length) {
+    html += '<div style="margin-bottom:12px">' +
+      '<div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Physique Fixes — Do These Daily</div>';
+    result.physiqueFixes.forEach(function(fix, idx) {
+      var icons = ['🔧','💪','⚡'];
+      html += '<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;background:var(--gold-light);border-radius:10px;padding:10px 12px">' +
+        '<span style="font-size:16px;flex-shrink:0">' + (icons[idx] || '🔧') + '</span>' +
+        '<div style="font-size:13px;color:var(--navy2);line-height:1.5;font-weight:500">' + fix + '</div></div>';
+    });
+    html += '</div>';
+  }
+  if (result.coachingPlan) {
+    html += '<div style="background:var(--navy);border-radius:12px;padding:14px 16px;margin-bottom:4px">' +
+      '<div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Your Weekly Coaching Plan</div>' +
+      '<div style="font-size:13px;color:rgba(255,255,255,0.85);line-height:1.7">' + result.coachingPlan + '</div></div>';
+  }
+  if (!html && result.feedback) {
+    html = '<div style="font-size:13px;line-height:1.6;color:var(--navy2)">' + result.feedback + '</div>';
+  }
+  feedbackEl.innerHTML = html || '<div style="font-size:13px;color:var(--muted)">Analysis complete.</div>';
+
+  savePostureScan({
+    date: localDateStr(),
+    timestamp: Date.now(),
+    overallScore: result.overallScore,
+    headline: result.headline,
+    metrics: result.metrics,
+    bodyComposition: result.bodyComposition,
+    d1Outlook: result.d1Outlook
+  });
+  updateHomeStats();
+
+  document.getElementById('aiResultCard').classList.add('show');
+  document.getElementById('aiResultCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+let checkinSelectedMood = 'good';
+let checkinSelectedType = 'game';
+let activeCheckinTab = 'morning';
+
+function switchCheckinTab(tab) {
+  activeCheckinTab = tab;
+  var isMorning = tab === 'morning';
+  document.getElementById('panelMorning').style.display = isMorning ? 'block' : 'none';
+  document.getElementById('panelEvening').style.display = isMorning ? 'none' : 'block';
+  document.getElementById('checkinPageTitle').textContent = isMorning ? 'MORNING CHECK-IN' : 'EVENING JOURNAL';
+  var tabM = document.getElementById('tabMorning');
+  var tabE = document.getElementById('tabEvening');
+  tabM.style.background = isMorning ? 'var(--navy)' : 'transparent';
+  tabM.style.color = isMorning ? 'var(--gold)' : 'var(--muted)';
+  tabM.style.fontWeight = isMorning ? '700' : '600';
+  tabE.style.background = isMorning ? 'transparent' : 'var(--navy)';
+  tabE.style.color = isMorning ? 'var(--muted)' : 'var(--gold)';
+  tabE.style.fontWeight = isMorning ? '600' : '700';
+  if (!isMorning) { checkEveningJournal(); initEveningStars(); }
+}
+
+function initEveningStars() {
+  ['energyStars','dayStars'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el || el.children.length > 0) return;
+    for (var i = 1; i <= 5; i++) {
+      var s = document.createElement('span');
+      s.className = 'star';
+      s.textContent = String.fromCharCode(9733);
+      s.dataset.val = i;
+      s.style.fontSize = '22px';
+      s.style.cursor = 'pointer';
+      s.style.color = 'var(--border)';
+      s.onclick = (function(container, val) {
+        return function() {
+          container.querySelectorAll('.star').forEach(function(st, idx) {
+            st.style.color = idx < val ? 'var(--gold)' : 'var(--border)';
+          });
+        };
+      })(el, i);
+      el.appendChild(s);
+    }
+  });
+}
+
+function checkEveningJournal() {
+  var today = localDateStr();
+  var saved = null;
+  try { saved = JSON.parse(localStorage.getItem('rh_evening_' + today)); } catch(e) {}
+  var note = document.getElementById('journalSavedNote');
+  if (saved) {
+    note.style.display = 'block';
+    if (saved.best) document.getElementById('journalBest').value = saved.best;
+    if (saved.improve) document.getElementById('journalImprove').value = saved.improve;
+    if (saved.tomorrow) document.getElementById('journalTomorrow').value = saved.tomorrow;
+  } else {
+    note.style.display = 'none';
+  }
+}
+
+function saveEveningJournal() {
+  var best = document.getElementById('journalBest').value.trim();
+  var improve = document.getElementById('journalImprove').value.trim();
+  var tomorrow = document.getElementById('journalTomorrow').value.trim();
+  if (!best && !improve && !tomorrow) {
+    alert('Write at least one reflection before saving.');
+    return;
+  }
+  var energyRating = Array.from(document.getElementById('energyStars').querySelectorAll('.star'))
+    .filter(function(s) { return s.style.color === 'var(--gold)'; }).length;
+  var dayRating = Array.from(document.getElementById('dayStars').querySelectorAll('.star'))
+    .filter(function(s) { return s.style.color === 'var(--gold)'; }).length;
+  var today = localDateStr();
+  var entry = { date: today, timestamp: Date.now(), best: best, improve: improve, tomorrow: tomorrow, energyRating: energyRating, dayRating: dayRating };
+  localStorage.setItem('rh_evening_' + today, JSON.stringify(entry));
+  var data = loadData();
+  var filtered = data.journalEntries.filter(function(e) { return !(e.date === today && e.type === 'evening'); });
+  filtered.unshift({ date: today, timestamp: Date.now(), type: 'evening', mood: 'good', confidence: dayRating * 2,
+    reflection: (best ? 'Best: ' + best + '  ' : '') + (improve ? 'Improve: ' + improve : '') });
+  localStorage.setItem('rh_journal', JSON.stringify(filtered));
+  document.getElementById('journalSavedNote').style.display = 'block';
+  alert('Evening journal saved. Rest well and come back stronger. Good night, Aleks!');
+}
+
+function selectCheckinMood(el, mood) {
+  document.querySelectorAll('#checkinMoodRow .mood-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  checkinSelectedMood = mood;
+}
+
+function selectCheckinType(type) {
+  checkinSelectedType = type;
+  ['game','practice','rest','other'].forEach(t => {
+    const btn = document.getElementById('ct' + t.charAt(0).toUpperCase() + t.slice(1));
+    if (!btn) return;
+    btn.className = 'type-opt';
+    if (t === type) btn.classList.add(t === 'game' ? 'selected-game' : t === 'practice' ? 'selected-practice' : 'selected-other');
+  });
+}
+
+function checkTodayCheckin() {
+  const today = localDateStr();
+  const { journalEntries } = loadData();
+  const todayEntry = journalEntries.find(e => e.date === today);
+  const note = document.getElementById('checkinTodayNote');
+  if (todayEntry) {
+    note.style.display = 'block';
+    // Pre-fill with today's saved values
+    if (todayEntry.confidence) {
+      document.getElementById('checkinConfSlider').value = todayEntry.confidence;
+      document.getElementById('checkinConfVal').textContent = todayEntry.confidence;
+    }
+    if (todayEntry.reflection) {
+      document.getElementById('checkinReflection').value = todayEntry.reflection;
+    }
+  } else {
+    note.style.display = 'none';
+  }
+}
+
+function saveCheckin() {
+  const confidence = parseInt(document.getElementById('checkinConfSlider').value) || 7;
+  const reflection = document.getElementById('checkinReflection').value.trim();
+  const today = localDateStr();
+
+  if (!reflection) {
+    alert('Add a quick reflection — even one sentence keeps the streak going!');
+    return;
+  }
+
+  // Remove any existing entry for today so we don't double-count the streak
+  const data = loadData();
+  const filtered = data.journalEntries.filter(e => e.date !== today);
+  filtered.unshift({
+    date: today,
+    timestamp: Date.now(),
+    type: checkinSelectedType,
+    mood: checkinSelectedMood,
+    confidence,
+    reflection,
+  });
+  localStorage.setItem('rh_journal', JSON.stringify(filtered));
+
+  updateHomeStats();
+
+  // Reset form
+  document.getElementById('checkinReflection').value = '';
+  document.getElementById('checkinConfSlider').value = 7;
+  document.getElementById('checkinConfVal').textContent = '7';
+  checkinSelectedMood = 'good';
+  document.querySelectorAll('#checkinMoodRow .mood-btn').forEach(b => b.classList.remove('selected'));
+
+  const streak = calcStreak(filtered);
+  alert(`Check-in saved! 🔥 ${streak}-day streak. Keep it going, Aleks.`);
+  showScreen('screen-home');
+}
+
+// ─── PROGRESS SCREEN ───
+
+function renderProgress() {
+  const { journalEntries, postureScans } = loadData();
+
+  // Summary stats
+  const streak = calcStreak(journalEntries);
+  const avgConf = calcAvgConfidence(journalEntries);
+  const totalEntries = journalEntries.length;
+  const totalScans = postureScans.length;
+  const wins = journalEntries.filter(e => e.result === 'win').length;
+
+  const statsEl = document.getElementById('progressStats');
+  statsEl.innerHTML = `
+    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:14px;padding:14px;text-align:center">
+      <div style="font-size:28px;font-weight:700;color:var(--gold);font-family:'Arial Narrow',Impact,Arial,sans-serif;line-height:1">${streak}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px;font-weight:500">Day Streak 🔥</div>
+    </div>
+    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:14px;padding:14px;text-align:center">
+      <div style="font-size:28px;font-weight:700;color:var(--teal);font-family:'Arial Narrow',Impact,Arial,sans-serif;line-height:1">${avgConf !== null ? avgConf : '—'}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px;font-weight:500">Avg Confidence</div>
+    </div>
+    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:14px;padding:14px;text-align:center">
+      <div style="font-size:28px;font-weight:700;color:var(--navy);font-family:'Arial Narrow',Impact,Arial,sans-serif;line-height:1">${totalEntries}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px;font-weight:500">Total Check-Ins</div>
+    </div>
+    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:14px;padding:14px;text-align:center">
+      <div style="font-size:28px;font-weight:700;color:var(--red);font-family:'Arial Narrow',Impact,Arial,sans-serif;line-height:1">${totalScans}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px;font-weight:500">Posture Scans</div>
+    </div>
+  `;
+
+  // 7-day confidence chart
+  const chartEl = document.getElementById('confChart');
+  const labelsEl = document.getElementById('confChartLabels');
+  chartEl.innerHTML = '';
+  labelsEl.innerHTML = '';
+  const dayLabels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = localDateStr(d);
+    const entry = journalEntries.find(e => e.date === dateStr);
+    const val = entry ? entry.confidence : 0;
+    const pct = val ? Math.round((val / 10) * 100) : 0;
+    const dayName = d.toLocaleDateString('en', { weekday: 'short' });
+    const isToday = i === 0;
+
+    chartEl.innerHTML += `
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:3px">
+        ${val ? `<div style="font-size:9px;color:var(--muted)">${val}</div>` : ''}
+        <div style="width:100%;border-radius:4px 4px 0 0;background:${val ? (isToday ? 'var(--gold)' : 'var(--navy3)') : 'var(--border)'};height:${pct}%;min-height:${val ? 4 : 0}px"></div>
+      </div>`;
+    labelsEl.innerHTML += `<div style="flex:1;text-align:center;font-size:9px;color:${isToday ? 'var(--gold)' : 'var(--muted)'};font-weight:${isToday ? '600' : '400'}">${dayName}</div>`;
+  }
+
+  // Posture scans list
+  const postureEl = document.getElementById('postureList');
+  if (!postureScans.length) {
+    postureEl.innerHTML = '<div style="font-size:13px;color:var(--muted);text-align:center;padding:12px 0">No scans yet — tap the Scan tab to analyse your posture</div>';
+  } else {
+    postureEl.innerHTML = postureScans.slice(0, 5).map(s => {
+      const d = new Date(s.timestamp || s.date);
+      const dateLabel = d.toLocaleDateString('en-CA', { month: 'short', day: 'numeric' });
+      const color = s.overallScore >= 80 ? 'var(--teal)' : s.overallScore >= 60 ? 'var(--gold)' : 'var(--red)';
+      return `
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+          <div style="font-size:24px;font-weight:700;color:${color};font-family:'Arial Narrow',Impact,Arial,sans-serif;width:44px;text-align:center">${s.overallScore}%</div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:500;color:var(--text)">${s.headline || 'Posture Scan'}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">${dateLabel}</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // Journal history
+  const histEl = document.getElementById('journalHistory');
+  if (!journalEntries.length) {
+    histEl.innerHTML = '<div style="background:var(--surface);border:0.5px solid var(--border);border-radius:14px;padding:20px;text-align:center;font-size:13px;color:var(--muted)">No entries yet — complete your first daily check-in to start tracking your journey.</div>';
+    return;
+  }
+
+  const moodEmoji = { fired: '😤', good: '😊', neutral: '😐', low: '😓' };
+  const typeLabel = { game: '🏒 Game', practice: '⛸️ Practice', rest: '😴 Rest', postgame: '📊 Post-Game', other: '📋 Other' };
+  const resultBadge = { win: '<span style="background:var(--teal-light);color:var(--teal);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">WIN</span>', loss: '<span style="background:var(--red-light);color:var(--red);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">LOSS</span>', tie: '<span style="background:var(--gold-light);color:var(--gold2);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">TIE</span>' };
+
+  histEl.innerHTML = journalEntries.slice(0, 20).map((e, idx) => {
+    const d = new Date(e.timestamp || e.date + 'T12:00:00');
+    const dateLabel = d.toLocaleDateString('en-CA', { weekday: 'short', month: 'short', day: 'numeric' });
+    const confColor = e.confidence >= 8 ? 'var(--teal)' : e.confidence >= 5 ? 'var(--gold)' : 'var(--red)';
+    return `
+      <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:14px">${moodEmoji[e.mood] || '📝'}</span>
+            <span style="font-size:12px;font-weight:600;color:var(--text)">${dateLabel}</span>
+            <span style="font-size:11px;color:var(--muted)">${typeLabel[e.type] || ''}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            ${e.result ? (resultBadge[e.result] || '') : ''}
+            <span style="font-size:20px;font-weight:700;color:${confColor};font-family:'Arial Narrow',Impact,Arial,sans-serif">${e.confidence || '—'}</span>
+          </div>
+        </div>
+        ${e.reflection ? `<div style="font-size:12px;color:var(--muted);line-height:1.5;border-top:0.5px solid var(--border);padding-top:8px;margin-top:4px">"${e.reflection.substring(0, 120)}${e.reflection.length > 120 ? '...' : ''}"</div>` : ''}
+      </div>`;
+  }).join('');
+}
+
+function confirmReset() {
+  if (confirm('Reset ALL data?\n\nThis will permanently delete your streak, check-ins, posture scans, and events. This cannot be undone.')) {
+    localStorage.removeItem('rh_journal');
+    localStorage.removeItem('rh_posture');
+    localStorage.removeItem('rh_events');
+    events = [];
+    updateHomeStats();
+    alert('All data cleared. Fresh start, Aleks. 🏒');
+    showScreen('screen-home');
+  }
+}
+
+
+// ─── CONTENT REFRESH — fetches fresh quotes/tips via Gemini weekly ───
+
+function shouldRefreshContent() {
+  var lastRefresh = localStorage.getItem('rh_content_refresh');
+  if (!lastRefresh) return true;
+  var daysSince = (Date.now() - parseInt(lastRefresh)) / (1000 * 60 * 60 * 24);
+  return daysSince >= 7; // refresh weekly
+}
+
+async function refreshContent() {
+  if (!navigator.onLine) return;
+  var apiKey = getGeminiKey();
+  if (!apiKey) return;
+  if (!shouldRefreshContent()) return;
+
+  try {
+    var endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+    var response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text:
+          'Generate 5 fresh motivational quotes for a 14-year-old ice hockey defenseman named Aleks who is pursuing D1 college hockey.' +
+          ' Source quotes from elite coaches, athletes, and performance experts.' +
+          ' Include the source name and role.' +
+          ' Return ONLY valid JSON array, no markdown:' +
+          ' [{"text":"quote here","author":"— Name, Role"},...]' +
+          ' Make them varied — mental toughness, preparation, leadership, physical development.'
+        }]}],
+        generationConfig: { temperature: 0.9, maxOutputTokens: 1024 }
+      })
+    });
+    if (!response.ok) return;
+    var data = await response.json();
+    var raw = '';
+    try { raw = data.candidates[0].content.parts[0].text; } catch(e) { return; }
+    raw = raw.replace(/^```(?:json)?\s*/im,'').replace(/\s*```\s*$/m,'').trim();
+    var freshQuotes = JSON.parse(raw);
+    if (Array.isArray(freshQuotes) && freshQuotes.length > 0) {
+      localStorage.setItem('rh_fresh_quotes', JSON.stringify(freshQuotes));
+      localStorage.setItem('rh_content_refresh', Date.now().toString());
+      console.log('[Content] Refreshed', freshQuotes.length, 'quotes from Gemini');
+    }
+  } catch(e) {
+    console.log('[Content] Refresh skipped:', e.message);
+  }
+}
+
+function getActiveQuotes() {
+  // Merge built-in quotes with any fresh ones fetched from Gemini
+  var fresh = [];
+  try {
+    var stored = localStorage.getItem('rh_fresh_quotes');
+    if (stored) fresh = JSON.parse(stored);
+  } catch(e) {}
+  return QUOTES.concat(fresh);
+}
+
+// ─── INIT ───
+document.addEventListener('DOMContentLoaded', () => {
+  // Reload events from localStorage on every launch
+  events = loadData().events;
+
+  checkGameAlert();
+  initPreGame();
+  initStars();
+  renderCalendar();
+  updateHomeStats();
+  updateOnlineStatus();
+
+  var activeQ = getActiveQuotes();
+  var dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+  quoteIndex = dayOfYear % activeQ.length;
+  document.getElementById('qText').textContent = activeQ[quoteIndex].text;
+  document.getElementById('qAuthor').textContent = activeQ[quoteIndex].author;
+  // Trigger background content refresh (runs weekly, non-blocking)
+  setTimeout(refreshContent, 5000);
+});
+</script>
+
+<script>
+// ── PWA SERVICE WORKER ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', async () => {
+    try {
+      const reg = await navigator.serviceWorker.register('./service-worker.js', {
+        scope: '/',
+        updateViaCache: 'none'
+      });
+      console.log('[PWA] SW registered scope:', reg.scope);
+
+      // Force check for updates immediately on every load
+      reg.update().catch(() => {});
+
+      // When a new SW installs, activate it immediately
+      reg.addEventListener('updatefound', () => {
+        const sw = reg.installing;
+        sw.addEventListener('statechange', () => {
+          if (sw.state === 'installed') {
+            sw.postMessage({ type: 'SKIP_WAITING' });
+          }
+        });
+      });
+
+      // Log when SW takes control
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        console.log('[PWA] New SW in control');
+      });
+
+    } catch (err) {
+      console.warn('[PWA] SW registration failed:', err.message);
+    }
+  });
+}
+
+// ── Hide install button when already running as installed PWA ──
+if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+  document.addEventListener('DOMContentLoaded', () => {
+    const row = document.getElementById('installRow');
+    if (row) row.style.display = 'none';
+  });
+}
+
+// ── Capture Chrome install prompt ──
+let deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  console.log('Install prompt captured');
+});
+
+async function installApp() {
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    const result = await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    if (result.outcome === 'accepted') {
+      const row = document.getElementById('installRow');
+      if (row) row.style.display = 'none';
+    }
+  } else {
+    const ua = navigator.userAgent;
+    const isIOS = /iPhone|iPad|iPod/.test(ua);
+    const isAndroid = /Android/.test(ua);
+    if (isIOS) {
+      alert(
+        'Install on iPhone:\n\n' +
+        '1. Open this page in Safari (not Chrome)\n' +
+        '2. Tap the Share button ⬆ at the bottom\n' +
+        '3. Tap "Add to Home Screen"\n' +
+        '4. Tap "Add"'
+      );
+    } else if (isAndroid) {
+      alert(
+        'Install Rise Hockey on Android:\n\n' +
+        'Step 1 — Clear old app data:\n' +
+        'Chrome menu (⋮) → Settings → Privacy and security → Clear browsing data → select "Cookies and site data" and "Cached images" → Clear data\n\n' +
+        'Step 2 — Reload this page and wait 30 seconds\n\n' +
+        'Step 3 — Chrome menu (⋮) → "Install app"\n\n' +
+        'If you still see "Add to Home screen" instead of "Install app", the clear data step is the fix.'
+      );
+    } else {
+      alert(
+        'Install on Chrome desktop:\n\n' +
+        'Look for the install icon ⊕ in the right side of the address bar and click it.'
+      );
+    }
+  }
+}
+
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  const row = document.getElementById('installRow');
+  if (row) row.style.display = 'none';
+  console.log('PWA installed');
+});
+</script>
+</body>
+</html>,
+  {
+    tag: 'Mindset', tagClass: 'tag-mind',
+    title: 'The Mamba Mentality: What Kobe Bryant Taught Us About Obsessive Excellence',
+    author: 'Kobe Bryant', authorRole: 'NBA Legend · 5x Champion',
+    authorInit: 'KB', authorDot: 'dot-navy',
+    readTime: '6 min read',
+    content: '<p>The Mamba Mentality is about 4am workouts. It is about studying film when everyone else is sleeping. It is about being so prepared that the game slows down for you while everyone else is still reacting.</p>' +
+    '<div class="pull-quote"><p>"Once you know what failure feels like, determination chases success. I never got tired of working because I knew what was on the other side."</p></div>' +
+    '<h3>The System Behind the Obsession</h3>' +
+    '<p>People see the results and assume it is talent. What they do not see is the system. Wake up at 4am. Work on the weakest part of your game first. Then work on what you are already good at to build confidence. Then study your opponents. Repeat every day for 20 years.</p>' +
+    '<p>The system is not glamorous. It is not exciting to wake up before the sun. But that hour from 4 to 5am when the gym is empty and the ice is cold — that is where champions are separated from everyone else.</p>' +
+    '<h3>What It Means for a Defenseman</h3>' +
+    '<p>Your role demands more from the mental side than most positions. You are reading plays before they develop. You are managing your gap against forwards who are faster than you. You are making decisions in fractions of a second under physical pressure. That requires more preparation, not less.</p>' +
+    '<div class="ai-insights"><div class="ai-insights-title">Key Takeaways for Aleks</div>' +
+    '<div class="ai-insight-item">Find your 4am — the time before everyone else starts working where you build your edge</div>' +
+    '<div class="ai-insight-item">Work on weaknesses first. Comfort is the enemy of development</div>' +
+    '<div class="ai-insight-item">Study the game away from the ice. Film, reading, mental prep count as training</div>' +
+    '<div class="ai-insight-item">The Mamba Mentality is a daily choice, not a talent. You can choose it right now</div></div>'
+  },
+  {
+    tag: 'Coaching', tagClass: 'tag-pre',
+    title: 'Nick Saban's Process: Why the Score Never Matters Until the Final Buzzer',
+    author: 'Nick Saban', authorRole: '6x National Championship Coach',
+    authorInit: 'NS', authorDot: 'dot-navy',
+    readTime: '5 min read',
+    content: '<p>Nick Saban has won more national championships than any coach in college football history. His secret is not complicated — it is ruthlessly simple. He calls it The Process.</p>' +
+    '<div class="pull-quote"><p>"Don't look at the scoreboard. Don't think about winning or losing. Focus only on what you need to do right now to execute this play perfectly."</p></div>' +
+    '<h3>What The Process Actually Is</h3>' +
+    '<p>The Process means you do not think about winning a championship. You do not think about your stats. You do not think about scouts watching. You focus entirely and completely on the next task in front of you. In practice: this drill. In the game: this shift. In the weight room: this rep.</p>' +
+    '<p>When you stack perfect execution of small tasks hour by hour and day by day, the results take care of themselves. Saban does not talk to his players about winning. He talks about process.</p>' +
+    '<h3>Applying The Process to Your Hockey Journey</h3>' +
+    '<p>You have a D1 goal. That is far away. The Process says: forget the goal right now. What is in front of you today? A morning skate? Execute it like it is the most important hour of your career. A gym session? Every rep with perfect form and full intensity. A school day? Show up ready to learn because that coachability is what D1 coaches notice.</p>' +
+    '<div class="ai-insights"><div class="ai-insights-title">Key Takeaways for Aleks</div>' +
+    '<div class="ai-insight-item">Focus on this shift, this drill, this rep — not the championship that is years away</div>' +
+    '<div class="ai-insight-item">Perfect execution of small tasks daily is how championships are built</div>' +
+    '<div class="ai-insight-item">Process thinking reduces anxiety and increases performance under pressure</div>' +
+    '<div class="ai-insight-item">Ask before every practice: what is the one thing I will execute perfectly today</div></div>'
+  },
+  {
+    tag: 'Performance', tagClass: 'tag-mind',
+    title: 'Alan Stein Jr: The Basics Done Better Than Anyone Else',
+    author: 'Alan Stein Jr.', authorRole: 'Elite Performance Coach',
+    authorInit: 'AS', authorDot: 'dot-gold',
+    readTime: '5 min read',
+    content: '<p>Alan Stein spent years training the best basketball players on the planet — Kevin Durant, Stephen Curry, Kobe Bryant. What he found was not what he expected. The best players in the world were obsessed with the basics.</p>' +
+    '<div class="pull-quote"><p>"When I watched Kobe Bryant warm up, it looked exactly the same as every other player. Except he did each fundamental rep with a level of focus and precision that most players never reach."</p></div>' +
+    '<h3>The Basics Are Not Basic to Champions</h3>' +
+    '<p>Every player at every level does the same warmup drills. Every defenseman works on gap control. Every player does edge work. The difference is not the drill — it is the standard you hold yourself to while you do it. Are you going through the motions or are you locked in on every single touch?</p>' +
+    '<h3>The Three Standards of Elite Athletes</h3>' +
+    '<p><strong>1. They do the right thing when no one is watching.</strong> Your coach is not watching every rep in the weight room. Your parents are not watching every off-ice session. The question is: are you the same player with no audience as you are when scouts are in the building?</p>' +
+    '<p><strong>2. They raise their standards, not just their effort.</strong> It is not about trying harder — it is about deciding that your minimum standard is higher than everyone else's maximum. Good enough is not good enough.</p>' +
+    '<p><strong>3. They are coachable above all else.</strong> Every elite athlete Stein worked with had one thing in common: they were desperate to be coached. They asked more questions, took more notes, and implemented feedback faster than anyone else.</p>' +
+    '<div class="ai-insights"><div class="ai-insights-title">Key Takeaways for Aleks</div>' +
+    '<div class="ai-insight-item">The basics done at elite standards beat flashy techniques every single time</div>' +
+    '<div class="ai-insight-item">Be the same player with no audience as you are when coaches are watching</div>' +
+    '<div class="ai-insight-item">Raise your minimum standard — what you accept from yourself on a bad day</div>' +
+    '<div class="ai-insight-item">Be desperately coachable. Ask questions. Take notes. Implement feedback immediately</div></div>'
+  },
+  {
+    tag: 'Mindset', tagClass: 'tag-mind',
+    title: 'Peyton Manning's Preparation: Never Leaving the Field Wishing You Had Done More',
+    author: 'Peyton Manning', authorRole: 'NFL Hall of Famer · Super Bowl Champion',
+    authorInit: 'PM', authorDot: 'dot-teal',
+    readTime: '5 min read',
+    content: '<p>Peyton Manning is widely considered the most prepared quarterback in NFL history. His teammates and coaches describe a player who studied more film, asked more questions, and put in more hours than anyone they had ever seen — even after he was already the best in the league.</p>' +
+    '<div class="pull-quote"><p>"Pressure is something you feel when you don't know what you're doing. The preparation is what eliminates the pressure."</p></div>' +
+    '<h3>Knowing the Game Inside Out</h3>' +
+    '<p>Manning became famous for calling audibles at the line of scrimmage — changing the entire play based on what the defence was showing him. How? By studying defensive tendencies so thoroughly that he could read a formation in one second and know exactly what the defence was trying to do before the snap.</p>' +
+    '<p>For a defenseman, this translates directly. When you have watched enough film to recognize a forward's tendencies before they make their move, you stop reacting and start anticipating. The game slows down for prepared players.</p>' +
+    '<h3>The Standard He Set For Himself</h3>' +
+    '<p>Manning's standard was simple and non-negotiable: when he left the field after a loss, he would never allow himself to think that he could have been more prepared. He could accept losing. He could not accept being out-prepared.</p>' +
+    '<div class="ai-insights"><div class="ai-insights-title">Key Takeaways for Aleks</div>' +
+    '<div class="ai-insight-item">Preparation eliminates pressure — the more you know, the calmer you play</div>' +
+    '<div class="ai-insight-item">Study opponents and anticipate plays before they develop</div>' +
+    '<div class="ai-insight-item">Set the standard: never leave the ice thinking you could have been more ready</div>' +
+    '<div class="ai-insight-item">Preparation is a form of respect for the game and for your teammates</div></div>'
+  },
+  {
+    tag: 'Strength', tagClass: 'tag-post',
+    title: 'The Rock's Blueprint: Building a Champion's Body and Mind',
+    author: 'Dwayne Johnson', authorRole: 'Athlete · Entrepreneur',
+    authorInit: 'DJ', authorDot: 'dot-coral',
+    readTime: '4 min read',
+    content: '<p>Before Dwayne Johnson was a global icon, he was cut from the Canadian Football League with seven dollars in his pocket. He made a decision that day that changed everything: he would become the hardest worker in every room he entered, every single day, without exception.</p>' +
+    '<div class="pull-quote"><p>"Be the hardest worker in the room. Not sometimes. Not when you feel like it. Every day. That is the standard."</p></div>' +
+    '<h3>What Consistent Hard Work Actually Looks Like</h3>' +
+    '<p>Johnson trains at 4am. He has done so for decades. Not because he loves waking up at 4am — he has said clearly that he does not. He does it because he decided that the hours other people are sleeping are his competitive advantage. While others rest, he builds.</p>' +
+    '<p>For young athletes, the lesson is not about training at 4am specifically. It is about finding the time that others are not using and filling it with intentional work toward your goal.</p>' +
+    '<h3>The Physical Foundation</h3>' +
+    '<p>Johnson's body was built on three principles that apply directly to hockey: compound movements for functional strength, consistent sleep as a performance tool, and nutrition as fuel not reward. He treats his body like a machine that needs proper maintenance to perform at its peak.</p>' +
+    '<div class="ai-insights"><div class="ai-insights-title">Key Takeaways for Aleks</div>' +
+    '<div class="ai-insight-item">Find the hours others are wasting and fill them with purposeful work</div>' +
+    '<div class="ai-insight-item">Treat your body as a performance machine — fuel it, rest it, build it intentionally</div>' +
+    '<div class="ai-insight-item">Consistency over years beats intensity over weeks every single time</div>' +
+    '<div class="ai-insight-item">The hardest worker in the room is a choice you make every morning</div></div>'
+  }
