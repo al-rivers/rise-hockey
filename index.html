@@ -2559,7 +2559,8 @@ function renderCalendar() {
     if (hasGame) cls += ' game-day';
     else if (hasEvent) cls += ' has-event';
     el.className = cls;
-    el.innerHTML = d + (hasWorkout ? '<div style="width:4px;height:4px;border-radius:50%;background:var(--teal);position:absolute;top:3px;right:3px"></div>' : '');
+    var dotColor = (workout && workout.key === 'PLYO') ? '#7C3AED' : 'var(--teal)';
+    el.innerHTML = d + (hasWorkout ? '<div style="width:4px;height:4px;border-radius:50%;background:' + dotColor + ';position:absolute;top:3px;right:3px"></div>' : '');
     el.onclick = (function(ds, wk) {
       return function() { openCalendarDay(ds, wk); };
     })(dateStr, workout);
@@ -3907,6 +3908,58 @@ var TRAINING_PHASES = [
 // PHASE 3+: Sessions A, B, C (Mon/Wed/Fri, 3x/week)
 var WORKOUT_TEMPLATES = {
 
+  // ─── FRIDAY PLYOMETRICS (March 1 – May 31: Phase 1 & 2 Fridays) ───
+  // 6-8 hockey-minded explosive movements. No equipment needed beyond a box/step.
+  // 20-25 min. Light day sandwiched between gym Mon/Wed and weekend hockey.
+  // NEVER do this within 24 hours of a game — skip if game is Saturday.
+  PLYO: {
+    name: 'Friday Explosives \u2014 Hockey Plyometrics', phase: 1, phaseColor: '#7C3AED',
+    warmup: '5 min light jog + 10 leg swings each direction + 10 hip circles + 5 jump ropes in place',
+    exercises: [
+      {
+        name: 'Broad Jump (Linear Power)',
+        sets: 3, reps: '5',
+        notes: 'Two-foot takeoff, drive arms forward, land softly with bent knees. Stick the landing — hold 2 seconds. Simulates explosive gap-closing burst on ice. Full rest between sets (60s). This is a QUALITY movement, not cardio.'
+      },
+      {
+        name: 'Lateral Bound (Edge-to-Edge)',
+        sets: 3, reps: '5 each side',
+        notes: 'Push off one foot, land on the other and hold. Mimic a hockey crossover stride push. Keep your knee bent on landing, don\'t let it cave inward. This is your most hockey-specific plyo — the push-off pattern is identical to a D-man closing on a forward.'
+      },
+      {
+        name: 'Box Jump / Step Jump',
+        sets: 3, reps: '5',
+        notes: 'Jump onto a solid surface (box, step, bench). Two feet up, two feet down. Land quietly — loud landings mean you\'re not absorbing force, which wastes power. If no box, do a squat jump reaching overhead instead. Reset fully before each rep.'
+      },
+      {
+        name: 'Single-Leg Hop to Stick (Balance Power)',
+        sets: 3, reps: '4 each leg',
+        notes: 'Hop forward on one foot, land and freeze for 3 seconds without wobbling. This trains the landing mechanics and single-leg stability that controls your gap on backwards skating transitions. Weaker leg gets an extra set if there\'s a difference. LHD note: left leg should be slightly stronger — develop the right leg equally.'
+      },
+      {
+        name: 'Skater Bound (Speed Skater Jump)',
+        sets: 3, reps: '8 total bounds',
+        notes: 'Low lateral jump side-to-side, one foot landing each time, touching hand to floor. Hockey skating posture — stay LOW. This is the closest thing to on-ice stride mechanics you can do without skates. Go for distance with each bound, not just speed.'
+      },
+      {
+        name: 'Depth Drop to Broad Jump (Reactive Power)',
+        sets: 3, reps: '4',
+        notes: 'Step off a step or curb (6-12 inches), land, immediately explode into a broad jump. The drop teaches your nervous system to react and redirect force instantly — exactly what happens when you pivot from backward to forward to cut off a forward. No pausing after the landing.'
+      },
+      {
+        name: 'Rotational Med Ball Slam OR Rotational Jump (Core Power)',
+        sets: 3, reps: '5 each side',
+        notes: 'If you have a medicine ball: hold at chest, rotate and slam it into the floor to one side. If no ball: stand with feet shoulder-width, rotate hips explosively left and right like a D-to-D pass motion, adding a small jump with each rotation. This trains the rotational hip power behind your shot from the left point and your backhand D-to-D pass.'
+      },
+      {
+        name: 'Sprint Starts (First-Step Explosion)',
+        sets: 4, reps: '15 metres',
+        notes: 'Start from a dead stop — feet parallel, slight forward lean. Explode into a sprint for 15 metres. Full stop. Walk back. This is about the FIRST 3 strides only — the same first-step explosion you need to beat a forward to the puck in the corner or close a gap. Rest 45s between. On game-weekend weeks, do only 2 sets.'
+      }
+    ],
+    cooldown: '5 min easy walk + hip flexor stretch 45s each + quad stretch 30s each. Drink chocolate milk or a glass of milk within 30 min.'
+  },
+
   // ─── PHASE 1 (March) & PHASE 2 (Apr-May): 2x/week ───
   P1A: {
     name: 'Session A — Squat / Push', phase: 1, phaseColor: 'var(--teal)',
@@ -4193,9 +4246,13 @@ function getWorkoutForDate(dateStr) {
   var phaseKey, dayKey;
 
   if (m === 3) {
-    phaseKey = 'P1'; dayKey = dow===1?'A':dow===3?'B':null;
+    phaseKey = 'P1';
+    // Fridays in March → Plyometrics (skip if Saturday is a game)
+    dayKey = dow===1?'A':dow===3?'B':dow===5?'PLYO':null;
   } else if (m === 4 || m === 5) {
-    phaseKey = 'P2'; dayKey = dow===1?'A':dow===3?'B':null;
+    phaseKey = 'P2';
+    // Fridays in April–May → Plyometrics (skip if Saturday is a game — see note in workout)
+    dayKey = dow===1?'A':dow===3?'B':dow===5?'PLYO':null;
   } else if (m === 6 && d2 <= 20) {
     phaseKey = 'P3'; dayKey = dow===1?'A':dow===3?'B':dow===5?'C':null;
   } else if ((m === 6 && d2 >= 21) || m === 7 || m === 8) {
@@ -4207,7 +4264,8 @@ function getWorkoutForDate(dateStr) {
   }
 
   if (!dayKey) return null;
-  var key = phaseKey + dayKey;
+  // PLYO is a shared template (no phase prefix)
+  var key = dayKey === 'PLYO' ? 'PLYO' : phaseKey + dayKey;
   var tmpl = WORKOUT_TEMPLATES[key];
   if (!tmpl) return null;
   return { key: key, weekNum: weekNum, phase: parseInt(phaseKey[1]), template: tmpl };
