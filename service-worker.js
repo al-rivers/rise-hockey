@@ -1,8 +1,6 @@
-const CACHE = 'rise-hockey-v22';
+const CACHE = 'rise-hockey-v23';
 
-const SHELL = [
-  './index.html',
-  './index.html',
+const STATIC = [
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
@@ -10,55 +8,60 @@ const SHELL = [
   './favicon-32.png'
 ];
 
-// Install — cache app shell
+// Install — cache static assets only (NOT index.html)
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE)
-      .then(cache => cache.addAll(SHELL))
+      .then(cache => cache.addAll(STATIC))
       .catch(() => {})
       .then(() => self.skipWaiting())
   );
 });
 
-// Activate — clear old caches, take control immediately
+// Activate — wipe ALL old caches immediately
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(
-        keys.filter(k => k !== CACHE).map(k => caches.delete(k))
-      ))
+      .then(keys => Promise.all(keys.map(k => caches.delete(k))))
+      .then(() => caches.open(CACHE))
+      .then(cache => cache.addAll(STATIC))
       .then(() => self.clients.claim())
   );
 });
 
-// Fetch — network first for cross-origin, cache first for same-origin
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // Cross-origin requests (Gemini API, fonts, etc) — always network, no caching
+  // Cross-origin (Gemini API, fonts) — always pass through to network
   if (url.origin !== self.location.origin) {
     event.respondWith(fetch(event.request));
     return;
   }
 
-  // Same-origin navigation — serve shell from cache
-  if (event.request.mode === 'navigate') {
+  // HTML navigation — ALWAYS network first, fall back to cache
+  // This ensures new deployments are picked up immediately
+  if (event.request.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname === '/') {
     event.respondWith(
-      caches.match('./index.html')
-        .then(cached => cached || fetch('./index.html'))
-        .catch(() => caches.match('./index.html'))
+      fetch(event.request)
+        .then(response => {
+          if (response && response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE).then(c => c.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request))
     );
     return;
   }
 
-  // Same-origin assets — cache first, fall back to network
+  // Static assets — cache first, network fallback
   event.respondWith(
     caches.match(event.request)
       .then(cached => cached || fetch(event.request)
         .then(response => {
           if (response && response.ok) {
-            const clone = response.clone();
-            caches.open(CACHE).then(c => c.put(event.request, clone));
+            caches.open(CACHE).then(c => c.put(event.request, response.clone()));
           }
           return response;
         })
