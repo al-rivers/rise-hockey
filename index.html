@@ -95,21 +95,13 @@ body {
 /* ── SCREENS ── */
 .screen {
   display: none;
-  visibility: hidden;
-  height: 0;
-  overflow: hidden;
-  pointer-events: none;
 }
 .screen.active {
   display: block;
-  visibility: visible;
-  height: auto;
-  overflow: visible;
-  pointer-events: auto;
-  animation: fadeIn 0.2s ease;
   min-height: calc(100vh - 80px);
+  animation: fadeIn 0.15s ease;
 }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 /* ── TOP NAV ── */
 .top-bar {
@@ -2376,13 +2368,28 @@ window.addEventListener('online', updateOnlineStatus);
 window.addEventListener('offline', updateOnlineStatus);
 
 function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  document.querySelectorAll('.nav-btn').forEach(n => n.classList.remove('active'));
-  const navMap = { 'screen-home': 'nav-home', 'screen-scan': 'nav-scan', 'screen-cal': 'nav-cal', 'screen-pregame': 'nav-pregame', 'screen-postgame': null, 'screen-checkin': 'nav-checkin', 'screen-progress': 'nav-progress' };
+  // Hide all screens — explicit inline style overrides everything
+  document.querySelectorAll('.screen').forEach(function(s) {
+    s.style.display = 'none';
+    s.classList.remove('active');
+  });
+
+  // Show only the target screen
+  var target = document.getElementById(id);
+  if (target) {
+    target.style.display = 'block';
+    target.classList.add('active');
+  }
+
+  // Update nav
+  document.querySelectorAll('.nav-btn').forEach(function(n) { n.classList.remove('active'); });
+  var navMap = { 'screen-home': 'nav-home', 'screen-scan': 'nav-scan', 'screen-cal': 'nav-cal', 'screen-pregame': 'nav-pregame', 'screen-postgame': null, 'screen-checkin': 'nav-checkin', 'screen-progress': 'nav-progress' };
   if (navMap[id]) document.getElementById(navMap[id]).classList.add('active');
+
   window.scrollTo(0, 0);
-  document.getElementById('app').scrollTop = 0;
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+
   if (id === 'screen-cal') { events = loadData().events; renderCalendar(); }
   if (id === 'screen-home') { events = loadData().events; updateHomeStats(); checkGameAlert(); }
   if (id === 'screen-progress') { renderProgress(); }
@@ -2394,7 +2401,7 @@ function showScreen(id) {
     setTimeout(function() { if (typeof startCamera === 'function') startCamera(); }, 300);
   } else {
     if (cameraStream) {
-      cameraStream.getTracks().forEach(t => t.stop());
+      cameraStream.getTracks().forEach(function(t) { t.stop(); });
       cameraStream = null;
     }
   }
