@@ -1408,13 +1408,13 @@ body {
       <span class="tile-label">Schedule</span>
       <span class="tile-sub">Games & practice</span>
     </button>
-    <button class="action-tile" onclick="showScreen('screen-pregame')">
+    <button class="action-tile" onclick="openGameday('pre')">
       <div class="action-tile-accent acc-teal"></div>
       <span class="tile-icon">⚡</span>
       <span class="tile-label">Pre-Game</span>
       <span class="tile-sub">Mental prep ritual</span>
     </button>
-    <button class="action-tile" onclick="showScreen('screen-postgame')">
+    <button class="action-tile" onclick="openGameday('post')">
       <div class="action-tile-accent acc-red"></div>
       <span class="tile-icon">📊</span>
       <span class="tile-label">Post-Game</span>
@@ -1637,155 +1637,171 @@ body {
 </div>
 
 <!-- ═══════ PRE-GAME ═══════ -->
-<div id="screen-pregame" class="screen" style="display:none">
-  <div class="pregame-hero">
-    <div class="pregame-label" id="pregameLabel">Pre-Game Mental Prep</div>
-    <div class="pregame-event" id="pregameEventName">No game scheduled today</div>
-    <div class="pregame-time" id="pregameEventTime">Open the Schedule tab to add a game</div>
+<!-- ═══════ GAMEDAY (Pre + Post sub-tabs) ═══════ -->
+<div id="screen-gameday" class="screen" style="display:none">
+
+  <!-- Shared hero — updates based on active tab -->
+  <div id="gamedayHero" class="pregame-hero">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div class="pregame-label" id="gamedayLabel">Game Day</div>
+        <div class="pregame-event" id="pregameEventName">No game scheduled today</div>
+        <div class="pregame-time" id="pregameEventTime">Open the Schedule tab to add a game</div>
+      </div>
+      <!-- Sub-tab pills in hero -->
+      <div style="display:flex;gap:6px;flex-shrink:0;margin-top:2px">
+        <button id="gdTabPre" onclick="switchGamedayTab('pre')"
+          style="padding:6px 14px;border:1.5px solid var(--gold);border-radius:20px;background:var(--gold);color:var(--navy);font-size:12px;font-weight:700;cursor:pointer;font-family:-apple-system,sans-serif">
+          Pre
+        </button>
+        <button id="gdTabPost" onclick="switchGamedayTab('post')"
+          style="padding:6px 14px;border:1.5px solid rgba(255,255,255,0.3);border-radius:20px;background:transparent;color:rgba(255,255,255,0.5);font-size:12px;font-weight:700;cursor:pointer;font-family:-apple-system,sans-serif">
+          Post
+        </button>
+      </div>
+    </div>
   </div>
 
-  <div class="pregame-body">
+  <!-- ── PRE-GAME PANEL ── -->
+  <div id="gdPanelPre" style="display:block">
+    <div class="pregame-body">
 
-    <div class="focus-word-card">
-      <div class="fw-label">Today's Focus Word</div>
-      <div class="fw-word" id="focusWord">COMPETE</div>
-      <div class="fw-sub" id="focusSub">Physical battles, every shift. Own the gap.</div>
+      <div class="focus-word-card">
+        <div class="fw-label">Today's Focus Word</div>
+        <div class="fw-word" id="focusWord">COMPETE</div>
+        <div class="fw-sub" id="focusSub">Physical battles, every shift. Own the gap.</div>
+      </div>
+
+      <div class="ritual-card">
+        <div class="ritual-title">Pre-Game Checklist</div>
+        <div class="ritual-item">
+          <div class="ritual-check" id="rc0" onclick="toggleCheck(this,'rc0')">✓</div>
+          <div class="ritual-text">Gear packed and ready the night before</div>
+        </div>
+        <div class="ritual-item">
+          <div class="ritual-check" id="rc1" onclick="toggleCheck(this,'rc1')">✓</div>
+          <div class="ritual-text">Morning skate / activation warmup done</div>
+        </div>
+        <div class="ritual-item">
+          <div class="ritual-check" id="rc2" onclick="toggleCheck(this,'rc2')">✓</div>
+          <div class="ritual-text">Nutrition — pre-game meal 3 hours before</div>
+        </div>
+        <div class="ritual-item">
+          <div class="ritual-check" id="rc3" onclick="toggleCheck(this,'rc3')">✓</div>
+          <div class="ritual-text">5 minutes of visualization: gap control, first contact</div>
+        </div>
+        <div class="ritual-item">
+          <div class="ritual-check" id="rc4" onclick="toggleCheck(this,'rc4')">✓</div>
+          <div class="ritual-text">Read today's pre-game article</div>
+        </div>
+        <div class="ritual-item">
+          <div class="ritual-check" id="rc5" onclick="toggleCheck(this,'rc5')">✓</div>
+          <div class="ritual-text">Tell yourself: "I'm prepared. I belong here."</div>
+        </div>
+      </div>
+
+      <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Pre-Game Notes</div>
+        <textarea id="pregameNotes" style="width:100%;min-height:80px;border:0.5px solid var(--border);border-radius:10px;padding:12px;font-size:13px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;resize:none;color:var(--text);background:var(--bg);outline:none;line-height:1.6"
+          placeholder="How are you feeling going in? What's your focus? Any nerves to acknowledge?..."></textarea>
+      </div>
+
+      <button onclick="savePregame()" style="width:100%;padding:14px;background:var(--gold);border:none;border-radius:14px;font-size:14px;font-weight:700;color:var(--navy);cursor:pointer;font-family:-apple-system,sans-serif;margin-bottom:16px">
+        Save Pre-Game Prep ✓
+      </button>
+
+      <div class="sec" style="padding:0 0 10px"><div class="sec-title">Read Before You Lace Up</div></div>
+
+      <div class="pregame-read" onclick="openBlog(0)" style="cursor:pointer">
+        <div class="blog-tag tag-pre" style="display:inline-block;margin-bottom:10px">Featured Read</div>
+        <div class="read-title">The Pressure Paradox: Why the Best Defensemen Thrive When It's Hardest</div>
+        <div class="read-meta">David Perron · NHL Veteran · 6 min read</div>
+        <div class="read-excerpt">"The moment the game feels too big is the moment you've forgotten why you started. Pressure is a privilege — it means you've put yourself somewhere that matters..."</div>
+        <button class="read-more-btn">Read Full Article →</button>
+      </div>
+
+      <div class="pregame-read" onclick="openBlog(3)" style="cursor:pointer">
+        <div class="blog-tag tag-mind" style="display:inline-block;margin-bottom:10px">Mindset</div>
+        <div class="read-title">10 Things Elite Defencemen Do Differently on Game Day</div>
+        <div class="read-meta">Hockey Canada Development Staff · 4 min read</div>
+        <div class="read-excerpt">"They aren't necessarily the most talented players on the ice. But they are the most prepared mentally. They've already played the game in their heads before they step on the ice..."</div>
+        <button class="read-more-btn">Read Full Article →</button>
+      </div>
+
     </div>
-
-    <div class="ritual-card">
-      <div class="ritual-title">Pre-Game Checklist</div>
-      <div class="ritual-item">
-        <div class="ritual-check" id="rc0" onclick="toggleCheck(this,'rc0')">✓</div>
-        <div class="ritual-text">Gear packed and ready the night before</div>
-      </div>
-      <div class="ritual-item">
-        <div class="ritual-check" id="rc1" onclick="toggleCheck(this,'rc1')">✓</div>
-        <div class="ritual-text">Morning skate / activation warmup done</div>
-      </div>
-      <div class="ritual-item">
-        <div class="ritual-check" id="rc2" onclick="toggleCheck(this,'rc2')">✓</div>
-        <div class="ritual-text">Nutrition — pre-game meal 3 hours before</div>
-      </div>
-      <div class="ritual-item">
-        <div class="ritual-check" id="rc3" onclick="toggleCheck(this,'rc3')">✓</div>
-        <div class="ritual-text">5 minutes of visualization: gap control, first contact</div>
-      </div>
-      <div class="ritual-item">
-        <div class="ritual-check" id="rc4" onclick="toggleCheck(this,'rc4')">✓</div>
-        <div class="ritual-text">Read today's pre-game article</div>
-      </div>
-      <div class="ritual-item">
-        <div class="ritual-check" id="rc5" onclick="toggleCheck(this,'rc5')">✓</div>
-        <div class="ritual-text">Tell yourself: "I'm prepared. I belong here."</div>
-      </div>
-    </div>
-
-    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Pre-Game Notes</div>
-      <textarea id="pregameNotes" style="width:100%;min-height:80px;border:0.5px solid var(--border);border-radius:10px;padding:12px;font-size:13px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;resize:none;color:var(--text);background:var(--bg);outline:none;line-height:1.6"
-        placeholder="How are you feeling going in? What's your focus? Any nerves to acknowledge?..."></textarea>
-    </div>
-
-    <button onclick="savePregame()" style="width:100%;padding:14px;background:var(--gold);border:none;border-radius:14px;font-size:14px;font-weight:700;color:var(--navy);cursor:pointer;font-family:-apple-system,sans-serif;margin-bottom:16px">
-      Save Pre-Game Prep ✓
-    </button>
-
-    <div class="sec" style="padding:0 0 10px"><div class="sec-title">Read Before You Lace Up</div></div>
-
-    <div class="pregame-read" onclick="openBlog(0)" style="cursor:pointer">
-      <div class="blog-tag tag-pre" style="display:inline-block;margin-bottom:10px">Featured Read</div>
-      <div class="read-title">The Pressure Paradox: Why the Best Defensemen Thrive When It's Hardest</div>
-      <div class="read-meta">David Perron · NHL Veteran · 6 min read</div>
-      <div class="read-excerpt">"The moment the game feels too big is the moment you've forgotten why you started. Pressure is a privilege — it means you've put yourself somewhere that matters..."</div>
-      <button class="read-more-btn">Read Full Article →</button>
-    </div>
-
-    <div class="pregame-read" onclick="openBlog(3)" style="cursor:pointer">
-      <div class="blog-tag tag-mind" style="display:inline-block;margin-bottom:10px">Mindset</div>
-      <div class="read-title">10 Things Elite Defencemen Do Differently on Game Day</div>
-      <div class="read-meta">Hockey Canada Development Staff · 4 min read</div>
-      <div class="read-excerpt">"They aren't necessarily the most talented players on the ice. But they are the most prepared mentally. They've already played the game in their heads before they step on the ice..."</div>
-      <button class="read-more-btn">Read Full Article →</button>
-    </div>
-
-  </div>
-</div>
-
-<!-- ═══════ POST-GAME ═══════ -->
-<div id="screen-postgame" class="screen" style="display:none">
-  <div class="postgame-hero">
-    <div class="postgame-label">Post-Game Check-In</div>
-    <div class="postgame-event" id="postgameEventName">Avalanche vs Northstars</div>
-    <div class="postgame-sub">Time to reflect and grow 💪</div>
   </div>
 
-  <div class="postgame-body">
+  <!-- ── POST-GAME PANEL ── -->
+  <div id="gdPanelPost" style="display:none">
+    <div class="postgame-body">
 
-    <div class="sec" style="padding:0 0 10px"><div class="sec-title">Game Result</div></div>
-    <div class="result-select">
-      <div class="result-opt" onclick="selectResult('win', this)">
-        <span class="res-icon">🏆</span>
-        <span class="res-label">Win</span>
+      <div class="sec" style="padding:16px 0 10px 0"><div class="sec-title">Game Result</div></div>
+      <div class="result-select">
+        <div class="result-opt" onclick="selectResult('win', this)">
+          <span class="res-icon">🏆</span>
+          <span class="res-label">Win</span>
+        </div>
+        <div class="result-opt" onclick="selectResult('loss', this)">
+          <span class="res-icon">💪</span>
+          <span class="res-label">Loss</span>
+        </div>
+        <div class="result-opt" onclick="selectResult('tie', this)">
+          <span class="res-icon">🤝</span>
+          <span class="res-label">Tie</span>
+        </div>
       </div>
-      <div class="result-opt" onclick="selectResult('loss', this)">
-        <span class="res-icon">💪</span>
-        <span class="res-label">Loss</span>
+
+      <div class="rating-section">
+        <div class="rating-label">Rate Your Game</div>
+        <div class="rating-row">
+          <div class="rating-name">Gap Control</div>
+          <div class="rating-stars" id="ratingGap" data-key="gap"></div>
+        </div>
+        <div class="rating-row">
+          <div class="rating-name">Physicality</div>
+          <div class="rating-stars" id="ratingPhys" data-key="phys"></div>
+        </div>
+        <div class="rating-row">
+          <div class="rating-name">Hockey IQ</div>
+          <div class="rating-stars" id="ratingIQ" data-key="iq"></div>
+        </div>
+        <div class="rating-row">
+          <div class="rating-name">Confidence</div>
+          <div class="rating-stars" id="ratingConf" data-key="conf"></div>
+        </div>
+        <div class="rating-row">
+          <div class="rating-name">Communicate</div>
+          <div class="rating-stars" id="ratingComm" data-key="comm"></div>
+        </div>
       </div>
-      <div class="result-opt" onclick="selectResult('tie', this)">
-        <span class="res-icon">🤝</span>
-        <span class="res-label">Tie</span>
+
+      <div class="sec" style="padding:0 0 10px"><div class="sec-title">Reflection</div></div>
+
+      <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div style="font-size:13px;font-weight:600;color:var(--text)">Today's Confidence</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--gold)" id="dailyConfVal">7</div>
+        </div>
+        <input type="range" min="1" max="10" value="7" step="1" id="dailyConfSlider" style="width:100%" oninput="document.getElementById('dailyConfVal').textContent=this.value">
+        <div style="display:flex;justify-content:space-between;margin-top:4px">
+          <span style="font-size:10px;color:var(--muted)">Low</span>
+          <span style="font-size:10px;color:var(--muted)">High</span>
+        </div>
       </div>
+
+      <textarea class="post-reflection" id="postReflection" placeholder="What was your best moment? What would you do differently? What did I learn? Be honest — the greats review every game..."></textarea>
+
+      <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:16px;margin-top:12px;margin-bottom:4px" id="postGameQuoteBlock">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Post-Game Thought</div>
+        <div style="font-family:'DM Serif Display',serif;font-size:15px;color:var(--text);line-height:1.5" id="postQuoteText">"Every game is a data point on the road to who you're becoming. The question is: are you collecting the data?"</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px">— Wayne Gretzky</div>
+      </div>
+
+      <button class="post-submit" onclick="submitPostGame()">Save Game Review</button>
+
     </div>
-
-    <div class="rating-section">
-      <div class="rating-label">Rate Your Game</div>
-      <div class="rating-row">
-        <div class="rating-name">Gap Control</div>
-        <div class="rating-stars" id="ratingGap" data-key="gap"></div>
-      </div>
-      <div class="rating-row">
-        <div class="rating-name">Physicality</div>
-        <div class="rating-stars" id="ratingPhys" data-key="phys"></div>
-      </div>
-      <div class="rating-row">
-        <div class="rating-name">Hockey IQ</div>
-        <div class="rating-stars" id="ratingIQ" data-key="iq"></div>
-      </div>
-      <div class="rating-row">
-        <div class="rating-name">Confidence</div>
-        <div class="rating-stars" id="ratingConf" data-key="conf"></div>
-      </div>
-      <div class="rating-row">
-        <div class="rating-name">Communicate</div>
-        <div class="rating-stars" id="ratingComm" data-key="comm"></div>
-      </div>
-    </div>
-
-    <div class="sec" style="padding:0 0 10px"><div class="sec-title">Reflection</div></div>
-
-    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div style="font-size:13px;font-weight:600;color:var(--text)">Today's Confidence</div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--gold)" id="dailyConfVal">7</div>
-      </div>
-      <input type="range" min="1" max="10" value="7" step="1" id="dailyConfSlider" style="width:100%" oninput="document.getElementById('dailyConfVal').textContent=this.value">
-      <div style="display:flex;justify-content:space-between;margin-top:4px">
-        <span style="font-size:10px;color:var(--muted)">Low</span>
-        <span style="font-size:10px;color:var(--muted)">High</span>
-      </div>
-    </div>
-
-    <textarea class="post-reflection" id="postReflection" placeholder="What was your best moment? What would you do differently? What did you learn? Be honest with yourself — the greats review every game..."></textarea>
-
-    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:16px;margin-top:12px" id="postGameQuoteBlock">
-      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Post-Game Thought</div>
-      <div style="font-family:'DM Serif Display',serif;font-size:15px;color:var(--text);line-height:1.5" id="postQuoteText">"Every game is a data point on the road to who you're becoming. The question is: are you collecting the data?"</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:6px">— Wayne Gretzky</div>
-    </div>
-
-    <button class="post-submit" onclick="submitPostGame()">Save Game Review</button>
-
   </div>
+
 </div>
 
 <!-- ═══════ BLOG READER ═══════ -->
@@ -1991,9 +2007,9 @@ body {
     <span class="nav-lbl">Schedule</span>
     <div class="nav-pip"></div>
   </div>
-  <div class="nav-btn" id="nav-pregame" onclick="showScreen('screen-pregame')">
-    <span class="nav-icon">⚡</span>
-    <span class="nav-lbl">Pre-Game</span>
+  <div class="nav-btn" id="nav-gameday" onclick="showScreen('screen-gameday')">
+    <span class="nav-icon">🏒</span>
+    <span class="nav-lbl">Game Day</span>
     <div class="nav-pip"></div>
   </div>
   <div class="nav-btn" id="nav-checkin" onclick="showScreen('screen-checkin')">
@@ -2457,7 +2473,7 @@ function showScreen(id) {
 
   // Update nav
   document.querySelectorAll('.nav-btn').forEach(function(n) { n.classList.remove('active'); });
-  var navMap = { 'screen-home': 'nav-home', 'screen-scan': 'nav-scan', 'screen-cal': 'nav-cal', 'screen-pregame': 'nav-pregame', 'screen-postgame': null, 'screen-checkin': 'nav-checkin', 'screen-progress': 'nav-progress' };
+  var navMap = { 'screen-home': 'nav-home', 'screen-scan': 'nav-scan', 'screen-cal': 'nav-cal', 'screen-gameday': 'nav-gameday', 'screen-checkin': 'nav-checkin', 'screen-progress': 'nav-progress' };
   if (navMap[id]) document.getElementById(navMap[id]).classList.add('active');
 
   window.scrollTo(0, 0);
@@ -2468,7 +2484,7 @@ function showScreen(id) {
   if (id === 'screen-home') { events = loadData().events; updateHomeStats(); checkGameAlert(); }
   if (id === 'screen-progress') { renderProgress(); }
   if (id === 'screen-checkin') { checkTodayCheckin(); }
-  if (id === 'screen-pregame') { events = loadData().events; initPreGame(); }
+  if (id === 'screen-gameday') { events = loadData().events; initPreGame(); initStars(); }
   if (id === 'screen-scan') {
     updateOnlineStatus();
     checkGeminiKeySetup();
@@ -2504,7 +2520,7 @@ function checkGameAlert() {
       <div class="game-alert-sub">${gameToday.location} · ${formatTime(gameToday.time)}</div>
       <div class="game-alert-row">
         <span style="font-size:12px;color:rgba(255,255,255,0.4)">Aleks — you're ready.</span>
-        <button class="alert-cta cta-gold" onclick="showScreen('screen-pregame')">Pre-Game Prep →</button>
+        <button class="alert-cta cta-gold" onclick="openGameday('pre')">Pre-Game Prep →</button>
       </div>
     </div>`;
   } else {
@@ -2608,10 +2624,10 @@ function openCalendarDay(dateStr, workout) {
     if (ev.type === 'game') {
       if (isPast2) {
         document.getElementById('postgameEventName').textContent = ev.name;
-        showScreen('screen-postgame');
+        openGameday('post');
       } else {
         document.getElementById('pregameEventName').textContent = ev.name;
-        showScreen('screen-pregame');
+        openGameday('pre');
       }
     }
   }
@@ -2705,9 +2721,9 @@ function openEventOptions(id) {
     if (action) {
       if (isPast) {
         document.getElementById('postgameEventName').textContent = ev.name;
-        showScreen('screen-postgame');
+        openGameday('post');
       } else {
-        showScreen('screen-pregame');
+        openGameday('pre');
       }
     } else {
       if (confirm(`Delete "${ev.name}"?`)) {
@@ -2761,6 +2777,39 @@ function saveEvent() {
 function loadPregameData(dateStr) {
   try { return JSON.parse(localStorage.getItem('rh_pregame_' + dateStr) || 'null'); }
   catch(e) { return null; }
+}
+
+// ─── GAMEDAY TAB SWITCHING ───
+function openGameday(tab) {
+  showScreen('screen-gameday');
+  switchGamedayTab(tab || 'pre');
+}
+
+function switchGamedayTab(tab) {
+  var isPre = tab === 'pre';
+  // Panels
+  document.getElementById('gdPanelPre').style.display  = isPre ? 'block' : 'none';
+  document.getElementById('gdPanelPost').style.display = isPre ? 'none'  : 'block';
+  // Hero background — gold for pre, teal for post
+  var hero = document.getElementById('gamedayHero');
+  hero.style.background = isPre ? '' : 'var(--teal)';
+  // Label
+  document.getElementById('gamedayLabel').textContent = isPre ? 'Pre-Game Mental Prep' : 'Post-Game Check-In';
+  // Tab pills
+  var pre  = document.getElementById('gdTabPre');
+  var post = document.getElementById('gdTabPost');
+  if (isPre) {
+    pre.style.background  = 'var(--gold)';  pre.style.color  = 'var(--navy)';
+    pre.style.borderColor = 'var(--gold)';
+    post.style.background = 'transparent'; post.style.color = 'rgba(255,255,255,0.5)';
+    post.style.borderColor = 'rgba(255,255,255,0.3)';
+  } else {
+    post.style.background  = '#fff';        post.style.color  = 'var(--teal)';
+    post.style.borderColor = '#fff';
+    pre.style.background  = 'transparent'; pre.style.color  = 'rgba(255,255,255,0.6)';
+    pre.style.borderColor = 'rgba(255,255,255,0.3)';
+  }
+  window.scrollTo(0, 0);
 }
 
 function savePregameData(dateStr, data) {
@@ -2985,7 +3034,7 @@ function submitPostGame() {
   document.querySelectorAll('.rating-stars .star').forEach(s => s.classList.remove('lit'));
 
   alert('Game review saved! Great work taking time to reflect. Champions review every game. 💪');
-  showScreen('screen-home');
+  openGameday('pre');
 }
 
 // ─── BLOG ───
