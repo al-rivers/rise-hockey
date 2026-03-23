@@ -1149,6 +1149,21 @@ body {
 }
 .star.lit { color: var(--gold); }
 
+.pin-key {
+  padding: 16px 0;
+  background: var(--bg);
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  font-family: -apple-system, sans-serif;
+  transition: background 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.pin-key:active { background: var(--ice2); }
+
 .post-reflection {
   width: 100%;
   min-height: 100px;
@@ -1361,7 +1376,7 @@ body {
 <!-- ═══════ HOME ═══════ -->
 <div id="screen-home" class="screen active" style="display:block">
   <div class="top-bar">
-    <div class="logo">Rise<span>.</span>Hockey</div>
+    <div class="logo" id="logoTap" onclick="handleLogoTap()">Rise<span>.</span>Hockey</div>
     <div class="top-right">
       <div class="streak-badge" id="topStreakBadge">🔥 0</div>
       <div class="avatar">AK</div>
@@ -1483,13 +1498,74 @@ body {
   </div>
 
   <!-- Install App button — always visible when not in standalone mode -->
-  <div id="installRow" style="padding:0 16px 16px">
+  <div id="installRow" style="padding:0 16px 8px">
     <button onclick="installApp()" style="width:100%;padding:14px;background:var(--navy);border:1.5px solid var(--gold);border-radius:14px;font-size:14px;font-weight:700;color:var(--gold);cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:10px">
       <span style="font-size:18px">📲</span> Install App on This Device
     </button>
     <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:6px">Save to your home screen for offline access</div>
   </div>
 
+  <!-- Notification permission banner — shown if not yet granted -->
+  <div id="notifBanner" style="display:none;padding:0 16px 16px">
+    <div style="background:var(--navy2);border:1px solid var(--navy3);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px">
+      <span style="font-size:24px;flex-shrink:0">🔔</span>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:2px">Turn on Morning Reminders</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.5)">Daily 7am motivation + Monday weigh-in</div>
+      </div>
+      <button onclick="requestNotificationPermission()" style="flex-shrink:0;padding:8px 14px;background:var(--gold);border:none;border-radius:10px;font-size:12px;font-weight:700;color:var(--navy);cursor:pointer;font-family:-apple-system,sans-serif">
+        Enable
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════ COACH DASHBOARD ═══════ -->
+<div id="screen-coach" class="screen" style="display:none">
+  <div style="background:var(--navy);padding:16px 20px 18px;display:flex;align-items:center;justify-content:space-between">
+    <div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:4px">Coach View</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1.5px;color:#fff">ALEKS'S PROGRESS</div>
+    </div>
+    <button onclick="showScreen('screen-home')" style="background:rgba(255,255,255,0.1);border:none;border-radius:10px;padding:8px 14px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:-apple-system,sans-serif">
+      ✕ Exit
+    </button>
+  </div>
+
+  <div style="padding:16px" id="coachContent">
+    <!-- Populated by renderCoachDashboard() -->
+  </div>
+</div>
+
+<!-- Coach PIN overlay -->
+<div id="coachPinOverlay" style="display:none;position:fixed;inset:0;background:rgba(10,22,40,0.85);z-index:500;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border-radius:20px;padding:28px 24px;width:300px;max-width:90vw;text-align:center">
+    <div style="font-size:28px;margin-bottom:8px">🏒</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1.5px;color:var(--navy);margin-bottom:4px">Coach Access</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:20px">Enter your PIN to view Aleks's dashboard</div>
+    <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px">
+      <div id="pinDot0" style="width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:transparent;transition:background 0.15s"></div>
+      <div id="pinDot1" style="width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:transparent;transition:background 0.15s"></div>
+      <div id="pinDot2" style="width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:transparent;transition:background 0.15s"></div>
+      <div id="pinDot3" style="width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:transparent;transition:background 0.15s"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+      <button onclick="pinDigit('1')" class="pin-key">1</button>
+      <button onclick="pinDigit('2')" class="pin-key">2</button>
+      <button onclick="pinDigit('3')" class="pin-key">3</button>
+      <button onclick="pinDigit('4')" class="pin-key">4</button>
+      <button onclick="pinDigit('5')" class="pin-key">5</button>
+      <button onclick="pinDigit('6')" class="pin-key">6</button>
+      <button onclick="pinDigit('7')" class="pin-key">7</button>
+      <button onclick="pinDigit('8')" class="pin-key">8</button>
+      <button onclick="pinDigit('9')" class="pin-key">9</button>
+      <button onclick="pinClear()" class="pin-key" style="font-size:11px;color:var(--muted)">CLR</button>
+      <button onclick="pinDigit('0')" class="pin-key">0</button>
+      <button onclick="closePinOverlay()" class="pin-key" style="font-size:11px;color:var(--muted)">✕</button>
+    </div>
+    <div id="pinError" style="display:none;font-size:12px;color:var(--red);font-weight:600">Incorrect PIN. Try again.</div>
+  </div>
 </div>
 
 <!-- ═══════ POSTURE SCAN ═══════ -->
@@ -4331,6 +4407,319 @@ function getMonthlySummary() {
   return MONTHLY_BENCHMARKS[monthKey] || null;
 }
 
+// ─── NOTIFICATIONS ───
+
+function checkNotificationBanner() {
+  if (!('Notification' in window)) return;
+  const banner = document.getElementById('notifBanner');
+  if (!banner) return;
+  if (Notification.permission === 'default') {
+    banner.style.display = 'block';
+  } else {
+    banner.style.display = 'none';
+    if (Notification.permission === 'granted') registerNotificationSchedule();
+  }
+}
+
+function requestNotificationPermission() {
+  if (!('Notification' in window)) {
+    alert('Your browser does not support notifications. Make sure Rise Hockey is installed to your home screen.');
+    return;
+  }
+  Notification.requestPermission().then(function(permission) {
+    document.getElementById('notifBanner').style.display = 'none';
+    if (permission === 'granted') {
+      registerNotificationSchedule();
+      // Fire a test notification so Aleks knows it worked
+      setTimeout(function() {
+        new Notification('🏒 Rise Hockey notifications are on!', {
+          body: 'You will get your morning fuel at 7am. Monday weigh-ins too.',
+          icon: './icon-192.png',
+          tag: 'rise-setup'
+        });
+      }, 500);
+    }
+  });
+}
+
+function registerNotificationSchedule() {
+  // Tell the service worker to start its alarm loop
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({ type: 'SCHEDULE_NOTIFICATIONS' });
+  }
+}
+
+// ─── COACH DASHBOARD ───
+
+var COACH_PIN = '7827'; // A-L-A-S on a phone keypad — change here if needed
+var coachPinEntry = '';
+var logoTapCount = 0;
+var logoTapTimer = null;
+
+function handleLogoTap() {
+  logoTapCount++;
+  if (logoTapTimer) clearTimeout(logoTapTimer);
+  if (logoTapCount >= 3) {
+    logoTapCount = 0;
+    openPinOverlay();
+  } else {
+    logoTapTimer = setTimeout(function() { logoTapCount = 0; }, 600);
+  }
+}
+
+function openPinOverlay() {
+  coachPinEntry = '';
+  updatePinDots();
+  document.getElementById('pinError').style.display = 'none';
+  var overlay = document.getElementById('coachPinOverlay');
+  overlay.style.display = 'flex';
+}
+
+function closePinOverlay() {
+  document.getElementById('coachPinOverlay').style.display = 'none';
+  coachPinEntry = '';
+  updatePinDots();
+}
+
+function pinDigit(d) {
+  if (coachPinEntry.length >= 4) return;
+  coachPinEntry += d;
+  updatePinDots();
+  if (coachPinEntry.length === 4) {
+    setTimeout(checkPin, 150);
+  }
+}
+
+function pinClear() {
+  coachPinEntry = '';
+  updatePinDots();
+  document.getElementById('pinError').style.display = 'none';
+}
+
+function updatePinDots() {
+  for (var i = 0; i < 4; i++) {
+    var dot = document.getElementById('pinDot' + i);
+    if (dot) {
+      dot.style.background = i < coachPinEntry.length ? 'var(--navy)' : 'transparent';
+      dot.style.borderColor = i < coachPinEntry.length ? 'var(--navy)' : 'var(--border)';
+    }
+  }
+}
+
+function checkPin() {
+  if (coachPinEntry === COACH_PIN) {
+    closePinOverlay();
+    renderCoachDashboard();
+    showScreen('screen-coach');
+  } else {
+    document.getElementById('pinError').style.display = 'block';
+    // Shake the dots
+    for (var i = 0; i < 4; i++) {
+      var dot = document.getElementById('pinDot' + i);
+      if (dot) dot.style.background = 'var(--red)';
+    }
+    setTimeout(function() {
+      coachPinEntry = '';
+      updatePinDots();
+    }, 700);
+  }
+}
+
+function renderCoachDashboard() {
+  var data = loadData();
+  var journal = data.journalEntries || [];
+  var scans   = data.postureScans   || [];
+  var events  = data.events         || [];
+
+  // ── Weight trend from Monday weigh-in journal entries ──
+  var weights = journal
+    .filter(function(e) { return e.type === 'weighin' && e.weight; })
+    .sort(function(a, b) { return a.date.localeCompare(b.date); });
+
+  // ── Workout completions ──
+  var workoutDates = [];
+  try {
+    for (var i = 0; i < localStorage.length; i++) {
+      var key = localStorage.key(i);
+      if (key && key.startsWith('rh_workout_')) {
+        var wd = JSON.parse(localStorage.getItem(key) || '{}');
+        if (wd.completed) workoutDates.push(key.replace('rh_workout_', ''));
+      }
+    }
+  } catch(e) {}
+  workoutDates.sort();
+
+  // ── Morning check-ins (last 14 days) ──
+  var today = localDateStr();
+  var checkins = journal.filter(function(e) {
+    return e.type === 'morning' || e.type === 'checkin';
+  }).slice(0, 14);
+
+  // ── Post-game entries ──
+  var postgames = journal.filter(function(e) { return e.type === 'postgame'; })
+    .sort(function(a, b) { return b.date.localeCompare(a.date); })
+    .slice(0, 6);
+
+  // ── Posture scans ──
+  var latestScan = scans[0] || null;
+
+  // ── Streak ──
+  var streak = calcStreak(journal);
+
+  // ── Build HTML ──
+  var html = '';
+
+  // Summary cards row
+  html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">';
+  html += coachCard('🔥', streak, 'Day Streak', 'var(--gold)');
+  html += coachCard('🏋️', workoutDates.length, 'Workouts Done', 'var(--teal)');
+  html += coachCard('📊', latestScan ? latestScan.overallScore + '%' : '—', 'Last Posture', 'var(--red)');
+  html += '</div>';
+
+  // Last weigh-in
+  if (weights.length > 0) {
+    var lastW = weights[weights.length - 1];
+    var firstW = weights[0];
+    var diff = lastW.weight - firstW.weight;
+    html += coachSection('⚖️ Weight Tracking');
+    html += '<div style="background:var(--surface);border:0.5px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
+    html += '<div><div style="font-size:13px;font-weight:600;color:var(--text)">Current Weight</div><div style="font-size:11px;color:var(--muted)">' + lastW.date + '</div></div>';
+    html += '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:36px;color:var(--navy)">' + lastW.weight + ' lbs</div>';
+    html += '</div>';
+    if (weights.length > 1) {
+      html += '<div style="font-size:12px;color:' + (diff >= 0 ? 'var(--teal)' : 'var(--red)') + ';font-weight:600">';
+      html += (diff >= 0 ? '↑' : '↓') + ' ' + Math.abs(diff).toFixed(1) + ' lbs since ' + firstW.date;
+      html += ' · Target: 120+ lbs by Sep 21</div>';
+    }
+    html += '</div>';
+  } else {
+    html += coachSection('⚖️ Weight Tracking');
+    html += '<div style="background:var(--bg);border-radius:12px;padding:14px;margin-bottom:14px;font-size:13px;color:var(--muted);text-align:center">No weigh-ins logged yet — Monday 7am reminder active</div>';
+  }
+
+  // Workout completions
+  html += coachSection('🏋️ Workout Log (' + workoutDates.length + ' sessions completed)');
+  html += '<div style="background:var(--surface);border:0.5px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px">';
+  if (workoutDates.length > 0) {
+    var recentWorkouts = workoutDates.slice(-10).reverse();
+    recentWorkouts.forEach(function(d) {
+      var wd = {};
+      try { wd = JSON.parse(localStorage.getItem('rh_workout_' + d) || '{}'); } catch(e2) {}
+      var workout = getWorkoutForDate(d);
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:0.5px solid var(--border)">';
+      html += '<div><div style="font-size:13px;font-weight:600;color:var(--text)">' + (workout ? workout.template.name : 'Workout') + '</div>';
+      html += '<div style="font-size:11px;color:var(--muted)">' + d + '</div></div>';
+      html += '<span style="font-size:11px;font-weight:700;color:var(--teal);background:var(--teal-light);padding:3px 10px;border-radius:20px">✓ Done</span>';
+      html += '</div>';
+    });
+  } else {
+    html += '<div style="font-size:13px;color:var(--muted);text-align:center">No workouts logged yet</div>';
+  }
+  html += '</div>';
+
+  // Post-game performance
+  if (postgames.length > 0) {
+    html += coachSection('🏒 Game Performance (last ' + postgames.length + ')');
+    html += '<div style="background:var(--surface);border:0.5px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px">';
+    postgames.forEach(function(pg) {
+      var resultCol = pg.result === 'win' ? 'var(--teal)' : pg.result === 'loss' ? 'var(--red)' : 'var(--gold)';
+      var resultLabel = pg.result ? pg.result.toUpperCase() : '—';
+      html += '<div style="padding:10px 0;border-bottom:0.5px solid var(--border)">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">';
+      html += '<div style="font-size:13px;font-weight:600;color:var(--text)">' + (pg.eventName || 'Game') + '</div>';
+      html += '<span style="font-size:11px;font-weight:700;color:' + resultCol + '">' + resultLabel + '</span>';
+      html += '</div>';
+      html += '<div style="font-size:11px;color:var(--muted);margin-bottom:4px">' + pg.date + ' · Confidence: ' + (pg.confidence || '—') + '/10</div>';
+      if (pg.ratings) {
+        html += '<div style="display:flex;gap:8px;flex-wrap:wrap">';
+        var labels = { gap: 'Gap', phys: 'Physical', iq: 'IQ', conf: 'Conf', comm: 'Comm' };
+        Object.keys(pg.ratings).forEach(function(k) {
+          if (labels[k]) {
+            html += '<span style="font-size:10px;background:var(--bg);padding:2px 8px;border-radius:10px;color:var(--text)">' + labels[k] + ': ' + pg.ratings[k] + '★</span>';
+          }
+        });
+        html += '</div>';
+      }
+      if (pg.reflection) {
+        html += '<div style="font-size:12px;color:var(--muted);margin-top:6px;font-style:italic">"' + pg.reflection.substring(0, 120) + (pg.reflection.length > 120 ? '...' : '') + '"</div>';
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  // Morning check-ins / mood trend
+  if (checkins.length > 0) {
+    html += coachSection('☀️ Recent Morning Check-Ins');
+    html += '<div style="background:var(--surface);border:0.5px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px">';
+    checkins.slice(0, 7).forEach(function(c) {
+      var moodEmoji = c.mood === 'fired' ? '🔥' : c.mood === 'good' ? '😊' : c.mood === 'ok' ? '😐' : c.mood === 'tired' ? '😴' : '•';
+      html += '<div style="display:flex;gap:10px;align-items:center;padding:7px 0;border-bottom:0.5px solid var(--border)">';
+      html += '<span style="font-size:18px">' + moodEmoji + '</span>';
+      html += '<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--text)">' + c.date + '</div>';
+      if (c.confidence) html += '<div style="font-size:11px;color:var(--muted)">Confidence: ' + c.confidence + '/10</div>';
+      html += '</div></div>';
+    });
+    html += '</div>';
+  }
+
+  // Latest posture scan
+  if (latestScan) {
+    html += coachSection('📸 Latest Posture Scan');
+    html += '<div style="background:var(--surface);border:0.5px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px">';
+    html += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">';
+    html += '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:48px;color:var(--gold);line-height:1">' + latestScan.overallScore + '</div>';
+    html += '<div><div style="font-size:14px;font-weight:600;color:var(--text)">' + (latestScan.headline || 'Posture Score') + '</div>';
+    html += '<div style="font-size:11px;color:var(--muted)">' + (latestScan.date || '') + '</div></div>';
+    html += '</div>';
+    if (latestScan.feedback) {
+      html += '<div style="font-size:12px;color:var(--navy2);line-height:1.6;background:var(--ice);border-radius:10px;padding:10px 12px">' + latestScan.feedback + '</div>';
+    }
+    html += '</div>';
+  }
+
+  // Footer note
+  html += '<div style="text-align:center;font-size:11px;color:var(--muted);padding-bottom:16px">Coach view reads Aleks\'s data from this device · Triple-tap Rise.Hockey to return</div>';
+
+  document.getElementById('coachContent').innerHTML = html;
+}
+
+function coachCard(icon, value, label, color) {
+  return '<div style="background:var(--surface);border:0.5px solid var(--border);border-radius:14px;padding:14px 10px;text-align:center">' +
+    '<div style="font-size:20px;margin-bottom:4px">' + icon + '</div>' +
+    '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:28px;color:' + color + ';line-height:1;margin-bottom:2px">' + value + '</div>' +
+    '<div style="font-size:10px;color:var(--muted);font-weight:500">' + label + '</div></div>';
+}
+
+function coachSection(title) {
+  return '<div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;margin-top:4px">' + title + '</div>';
+}
+
+// ─── WEIGH-IN LOGGING (from Monday notification tap) ───
+// Expose a simple way for Aleks to log his weight from the app
+function showWeighInPrompt() {
+  var w = prompt('Monday Weigh-In\n\nEnter your weight in lbs (before eating, after washroom):');
+  if (!w) return;
+  var num = parseFloat(w);
+  if (isNaN(num) || num < 50 || num > 300) {
+    alert('That doesn\'t look right — enter your weight in lbs (e.g. 108).');
+    return;
+  }
+  var entry = {
+    date: localDateStr(),
+    timestamp: Date.now(),
+    type: 'weighin',
+    weight: num,
+    mood: 'good',
+    confidence: null,
+    reflection: 'Monday weigh-in: ' + num + ' lbs'
+  };
+  saveJournalEntry(entry);
+  updateHomeStats();
+  alert('Weight logged: ' + num + ' lbs ✓\n\nTarget: 120+ lbs by September 21.\nKeep fuelling, keep training.');
+}
+
 // ─── INIT ───
 document.addEventListener('DOMContentLoaded', () => {
   // Reload events from localStorage on every launch
@@ -4358,6 +4747,30 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('qAuthor').textContent = activeQ[quoteIndex].author;
   // Trigger background content refresh (runs weekly, non-blocking)
   setTimeout(refreshContent, 5000);
+
+  // Check notification permission and show banner if needed
+  checkNotificationBanner();
+
+  // Re-register notification schedule with SW on every open (belt and suspenders)
+  if (Notification && Notification.permission === 'granted') {
+    setTimeout(registerNotificationSchedule, 2000);
+  }
+
+  // If today is Monday and it's morning, show weigh-in prompt if not done today
+  var todayInit = localDateStr();
+  var nowInit = new Date();
+  if (nowInit.getDay() === 1 && nowInit.getHours() >= 7 && nowInit.getHours() < 10) {
+    var alreadyWeighedIn = (loadData().journalEntries || []).some(function(e) {
+      return e.type === 'weighin' && e.date === todayInit;
+    });
+    if (!alreadyWeighedIn) {
+      setTimeout(function() {
+        if (confirm('Monday Weigh-In 💪\n\nHave you jumped on the scale yet?\n\nTap OK to log your weight now.')) {
+          showWeighInPrompt();
+        }
+      }, 3000);
+    }
+  }
 });
 </script>
 
