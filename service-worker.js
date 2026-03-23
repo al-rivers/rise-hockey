@@ -1,4 +1,4 @@
-const CACHE = 'rise-hockey-v29';
+const CACHE = 'rise-hockey-v31';
 
 const STATIC = [
   './manifest.json',
@@ -25,6 +25,11 @@ const MORNING_MESSAGES = [
 const WEIGH_IN_MESSAGE = {
   title: '⚖️ Monday Weigh-In, Aleks',
   body: 'Before you eat or drink anything — jump on the scale. Log your weight. Track the trend to September.'
+};
+
+const FILM_ROOM_MESSAGE = {
+  title: '🎬 Film Room — New Video Ready',
+  body: 'Your next study session is queued. 15 minutes of focused film study beats an hour of passive watching.'
 };
 
 // ─── INSTALL ───
@@ -115,10 +120,20 @@ function checkAndFireNotifications() {
   const now  = new Date();
   const hour = now.getHours();
   const min  = now.getMinutes();
-  const day  = now.getDay(); // 0=Sun, 1=Mon
+  const day  = now.getDay();
 
   if (hour === 7 && min === 0) fireMotivationalNotification();
   if (day === 1 && hour === 7 && min === 1) fireWeighInNotification();
+
+  // Film Room — fire at 7:02am every 3 days starting Mar 23 2026
+  if (hour === 7 && min === 2) {
+    const start = new Date('2026-03-23');
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const daysDiff = Math.round((today - start) / 86400000);
+    if (daysDiff >= 0 && daysDiff % 3 === 0) {
+      fireFilmRoomNotification();
+    }
+  }
 }
 
 function fireMotivationalNotification() {
@@ -143,6 +158,18 @@ function fireWeighInNotification() {
     tag: 'rise-weighin',
     renotify: true,
     requireInteraction: true,
+    data: { url: './' }
+  }).catch(() => {});
+}
+
+function fireFilmRoomNotification() {
+  self.registration.showNotification(FILM_ROOM_MESSAGE.title, {
+    body: FILM_ROOM_MESSAGE.body,
+    icon: './icon-192.png',
+    badge: './favicon-32.png',
+    tag: 'rise-filmroom',
+    renotify: true,
+    requireInteraction: false,
     data: { url: './' }
   }).catch(() => {});
 }

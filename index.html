@@ -1570,6 +1570,12 @@ body {
       <span class="tile-label">Posture Scan</span>
       <span class="tile-sub">AI-powered analysis</span>
     </button>
+    <button class="action-tile" onclick="showWeighInModal()">
+      <div class="action-tile-accent acc-gold"></div>
+      <span class="tile-icon">⚖️</span>
+      <span class="tile-label">Weigh In</span>
+      <span class="tile-sub">Log Monday weight</span>
+    </button>
     <button class="action-tile" onclick="showScreen('screen-cal')">
       <div class="action-tile-accent acc-navy"></div>
       <span class="tile-icon">🏒</span>
@@ -2167,6 +2173,18 @@ body {
     <!-- Summary stats -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px" id="progressStats"></div>
 
+    <!-- Weight tracking — 30-week gain chart -->
+    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px" id="weightCard">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">Weight Gain — 30-Week Target</div>
+        <button onclick="showWeighInModal()" style="background:var(--gold);border:none;border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;color:var(--navy);cursor:pointer;font-family:-apple-system,sans-serif">+ Log Weight</button>
+      </div>
+      <div id="weightProgress"></div>
+      <div style="display:flex;align-items:flex-end;gap:3px;height:64px;margin:12px 0 6px" id="weightChart"></div>
+      <div style="display:flex;gap:3px;margin-bottom:8px" id="weightChartLabels"></div>
+      <div id="weightHistory"></div>
+    </div>
+
     <!-- 7-day confidence chart -->
     <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px">
       <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:14px">Confidence — Last 7 Days</div>
@@ -2189,6 +2207,48 @@ body {
       Reset All Data
     </button>
 
+  </div>
+</div>
+
+<!-- ═══════ WEIGH-IN MODAL ═══════ -->
+<div id="weighInModal" class="overlay" onclick="if(event.target===this)closeWeighInModal()">
+  <div class="sheet" style="max-height:70vh">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div class="sheet-title">⚖️ Monday Weigh-In</div>
+      <div class="sheet-sub">Before eating · After washroom · Same time each week</div>
+    </div>
+    <div style="padding:16px 20px 32px">
+      <div style="background:var(--navy);border-radius:12px;padding:12px 16px;margin-bottom:18px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:4px">30-Week Target</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.7);line-height:1.5">Start: ~105 lbs &nbsp;→&nbsp; <strong style="color:var(--gold)">120+ lbs by Sep 21, 2026</strong><br>Trend matters more than any single number.</div>
+      </div>
+
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px">Your weight today (lbs)</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+        <button onclick="adjustWeight(-0.5)" style="width:44px;height:44px;border-radius:50%;border:0.5px solid var(--border);background:var(--bg);font-size:20px;cursor:pointer;color:var(--text);flex-shrink:0">−</button>
+        <div style="flex:1;text-align:center">
+          <div style="font-family:'Arial Narrow',Impact,Arial,sans-serif;font-size:52px;color:var(--navy);line-height:1;letter-spacing:.04em" id="weighInDisplay">108.0</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">lbs</div>
+        </div>
+        <button onclick="adjustWeight(0.5)" style="width:44px;height:44px;border-radius:50%;border:0.5px solid var(--border);background:var(--bg);font-size:20px;cursor:pointer;color:var(--text);flex-shrink:0">+</button>
+      </div>
+
+      <input type="range" id="weighInSlider" min="90" max="160" step="0.5" value="108"
+        style="width:100%;margin-bottom:6px"
+        oninput="document.getElementById('weighInDisplay').textContent=parseFloat(this.value).toFixed(1)">
+      <div style="display:flex;justify-content:space-between;margin-bottom:20px">
+        <span style="font-size:10px;color:var(--muted)">90 lbs</span>
+        <span style="font-size:10px;color:var(--gold);font-weight:600">120 lbs target</span>
+        <span style="font-size:10px;color:var(--muted)">160 lbs</span>
+      </div>
+
+      <div id="weighInFeedback" style="display:none;border-radius:10px;padding:10px 14px;font-size:12px;line-height:1.5;margin-bottom:14px"></div>
+
+      <button onclick="saveWeighIn()" style="width:100%;padding:15px;background:var(--gold);border:none;border-radius:13px;font-size:15px;font-weight:700;color:var(--navy);cursor:pointer;font-family:-apple-system,sans-serif">
+        Log This Weight ✓
+      </button>
+    </div>
   </div>
 </div>
 
@@ -4090,15 +4150,18 @@ function saveCheckin() {
 
 function renderProgress() {
   const { journalEntries, postureScans } = loadData();
+  const weights = journalEntries.filter(e => e.type === 'weighin' && e.weight).sort((a,b) => a.date.localeCompare(b.date));
 
   // Summary stats
   const streak = calcStreak(journalEntries);
   const avgConf = calcAvgConfidence(journalEntries);
   const totalEntries = journalEntries.length;
   const totalScans = postureScans.length;
-  const wins = journalEntries.filter(e => e.result === 'win').length;
 
   const statsEl = document.getElementById('progressStats');
+  const latestW = weights.length ? weights[weights.length-1].weight : null;
+  const startW = weights.length ? weights[0].weight : 105;
+  const gainSoFar = latestW ? (latestW - startW).toFixed(1) : null;
   statsEl.innerHTML = `
     <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:14px;padding:14px;text-align:center">
       <div style="font-size:28px;font-weight:700;color:var(--gold);font-family:'Arial Narrow',Impact,Arial,sans-serif;line-height:1">${streak}</div>
@@ -4109,14 +4172,84 @@ function renderProgress() {
       <div style="font-size:10px;color:var(--muted);margin-top:4px;font-weight:500">Avg Confidence</div>
     </div>
     <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:14px;padding:14px;text-align:center">
-      <div style="font-size:28px;font-weight:700;color:var(--navy);font-family:'Arial Narrow',Impact,Arial,sans-serif;line-height:1">${totalEntries}</div>
-      <div style="font-size:10px;color:var(--muted);margin-top:4px;font-weight:500">Total Check-Ins</div>
+      <div style="font-size:28px;font-weight:700;color:var(--navy);font-family:'Arial Narrow',Impact,Arial,sans-serif;line-height:1">${latestW ? latestW : '—'}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px;font-weight:500">Current lbs ⚖️</div>
     </div>
     <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:14px;padding:14px;text-align:center">
-      <div style="font-size:28px;font-weight:700;color:var(--red);font-family:'Arial Narrow',Impact,Arial,sans-serif;line-height:1">${totalScans}</div>
-      <div style="font-size:10px;color:var(--muted);margin-top:4px;font-weight:500">Posture Scans</div>
+      <div style="font-size:28px;font-weight:700;color:${gainSoFar && gainSoFar > 0 ? 'var(--teal)' : 'var(--red)'};font-family:'Arial Narrow',Impact,Arial,sans-serif;line-height:1">${gainSoFar ? '+'+gainSoFar : '—'}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px;font-weight:500">lbs gained 💪</div>
     </div>
   `;
+
+  // ── WEIGHT TRACKING SECTION ──
+  const TARGET_START = 105;
+  const TARGET_END = 120;
+  const TARGET_GAIN = TARGET_END - TARGET_START;
+  const wp = document.getElementById('weightProgress');
+  if (!weights.length) {
+    wp.innerHTML = '<div style="font-size:13px;color:var(--muted);text-align:center;padding:8px 0">No weigh-ins yet — tap Log Weight to start tracking your 30-week gain.</div>';
+    document.getElementById('weightChart').innerHTML = '';
+    document.getElementById('weightChartLabels').innerHTML = '';
+    document.getElementById('weightHistory').innerHTML = '';
+  } else {
+    const currentW = weights[weights.length-1].weight;
+    const gained = currentW - TARGET_START;
+    const pct = Math.min(100, Math.max(0, Math.round((gained / TARGET_GAIN) * 100)));
+    const remaining = Math.max(0, TARGET_END - currentW).toFixed(1);
+    const toGo = gained >= TARGET_GAIN ? 0 : remaining;
+
+    wp.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+        <div style="font-size:13px;font-weight:600;color:var(--text)">${currentW} lbs</div>
+        <div style="font-size:11px;color:var(--muted)">${toGo > 0 ? toGo+' lbs to go' : '🏆 Target reached!'} · goal: 120 lbs</div>
+      </div>
+      <div style="height:10px;background:var(--bg);border-radius:5px;overflow:hidden;margin-bottom:4px;border:0.5px solid var(--border)">
+        <div style="height:100%;border-radius:5px;background:${pct >= 100 ? 'var(--teal)' : 'var(--gold)'};width:${pct}%;transition:width 1s ease"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between">
+        <span style="font-size:10px;color:var(--muted)">105 lbs (start)</span>
+        <span style="font-size:10px;color:var(--muted)">${pct}% of goal</span>
+        <span style="font-size:10px;color:var(--gold);font-weight:600">120 lbs target</span>
+      </div>`;
+
+    // Bar chart — last 8 weigh-ins
+    const chartEl = document.getElementById('weightChart');
+    const labelsEl = document.getElementById('weightChartLabels');
+    const recent = weights.slice(-8);
+    const minW = Math.min(...recent.map(w => w.weight)) - 1;
+    const maxW = Math.max(...recent.map(w => w.weight)) + 1;
+    const range = maxW - minW || 1;
+    chartEl.innerHTML = '';
+    labelsEl.innerHTML = '';
+    recent.forEach((w, i) => {
+      const h = Math.round(((w.weight - minW) / range) * 100);
+      const isLast = i === recent.length - 1;
+      const d = new Date(w.date + 'T12:00:00');
+      const lbl = d.toLocaleDateString('en-CA', {month:'short', day:'numeric'});
+      chartEl.innerHTML += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:2px">
+        <div style="font-size:9px;color:${isLast?'var(--gold)':'var(--muted)'};font-weight:${isLast?'700':'400'}">${w.weight}</div>
+        <div style="width:100%;border-radius:3px 3px 0 0;background:${isLast?'var(--gold)':'var(--navy3)'};height:${Math.max(h,8)}%"></div>
+      </div>`;
+      labelsEl.innerHTML += `<div style="flex:1;text-align:center;font-size:9px;color:${isLast?'var(--gold)':'var(--muted)'};font-weight:${isLast?'600':'400'}">${lbl}</div>`;
+    });
+
+    // Recent weigh-in list
+    const histEl = document.getElementById('weightHistory');
+    histEl.innerHTML = '<div style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin:10px 0 6px">All Weigh-Ins</div>';
+    histEl.innerHTML += [...weights].reverse().slice(0,10).map((w,i) => {
+      const prev = [...weights].reverse()[i+1];
+      const diff = prev ? (w.weight - prev.weight).toFixed(1) : null;
+      const diffColor = diff > 0 ? 'var(--teal)' : diff < 0 ? 'var(--red)' : 'var(--muted)';
+      const d = new Date(w.date + 'T12:00:00');
+      const lbl = d.toLocaleDateString('en-CA', {weekday:'short', month:'short', day:'numeric'});
+      return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border)">
+        <div style="font-size:18px;font-weight:700;color:var(--navy);font-family:'Arial Narrow',Impact,Arial,sans-serif;width:52px">${w.weight}</div>
+        <div style="flex:1;font-size:12px;color:var(--muted)">${lbl}</div>
+        ${diff !== null ? `<div style="font-size:12px;font-weight:700;color:${diffColor}">${diff > 0 ? '+' : ''}${diff} lbs</div>` : '<div style="font-size:11px;color:var(--muted)">first entry</div>'}
+      </div>`;
+    }).join('');
+  }
+
 
   // 7-day confidence chart
   const chartEl = document.getElementById('confChart');
@@ -4945,14 +5078,32 @@ function coachSection(title) {
 
 // ─── WEIGH-IN LOGGING (from Monday notification tap) ───
 // Expose a simple way for Aleks to log his weight from the app
-function showWeighInPrompt() {
-  var w = prompt('Monday Weigh-In\n\nEnter your weight in lbs (before eating, after washroom):');
-  if (!w) return;
-  var num = parseFloat(w);
-  if (isNaN(num) || num < 50 || num > 300) {
-    alert('That doesn\'t look right — enter your weight in lbs (e.g. 108).');
-    return;
-  }
+function showWeighInModal() {
+  // Pre-fill slider with last known weight or sensible default
+  var data = loadData();
+  var weights = data.journalEntries.filter(function(e) { return e.type === 'weighin' && e.weight; });
+  var lastW = weights.length ? weights[weights.length-1].weight : 108;
+  document.getElementById('weighInSlider').value = lastW;
+  document.getElementById('weighInDisplay').textContent = parseFloat(lastW).toFixed(1);
+  document.getElementById('weighInFeedback').style.display = 'none';
+  document.getElementById('weighInModal').classList.add('open');
+}
+
+function closeWeighInModal() {
+  document.getElementById('weighInModal').classList.remove('open');
+}
+
+function adjustWeight(delta) {
+  var slider = document.getElementById('weighInSlider');
+  var newVal = Math.min(160, Math.max(90, parseFloat(slider.value) + delta));
+  slider.value = newVal;
+  document.getElementById('weighInDisplay').textContent = newVal.toFixed(1);
+}
+
+function saveWeighIn() {
+  var num = parseFloat(document.getElementById('weighInSlider').value);
+  if (isNaN(num) || num < 90 || num > 160) return;
+
   var entry = {
     date: localDateStr(),
     timestamp: Date.now(),
@@ -4964,8 +5115,37 @@ function showWeighInPrompt() {
   };
   saveJournalEntry(entry);
   updateHomeStats();
-  alert('Weight logged: ' + num + ' lbs ✓\n\nTarget: 120+ lbs by September 21.\nKeep fuelling, keep training.');
+
+  // Show contextual feedback inside modal before closing
+  var gained = (num - 105).toFixed(1);
+  var toGo = Math.max(0, 120 - num).toFixed(1);
+  var fb = document.getElementById('weighInFeedback');
+  var msg, bg, color;
+  if (num >= 120) {
+    msg = '🏆 Target reached! ' + num + ' lbs — you hit 120+. Keep the muscle on through tryouts.';
+    bg = 'var(--teal-light)'; color = 'var(--teal)';
+  } else if (gained > 0) {
+    msg = '✓ Logged ' + num + ' lbs — up ' + gained + ' lbs since start. ' + toGo + ' lbs to the 120 target. Keep fuelling.';
+    bg = 'var(--gold-light)'; color = 'var(--gold2)';
+  } else {
+    msg = '✓ Logged ' + num + ' lbs. Focus on hitting your calorie targets this week — the scale follows the kitchen.';
+    bg = 'var(--ice)'; color = 'var(--navy)';
+  }
+  fb.style.background = bg;
+  fb.style.color = color;
+  fb.style.border = '0.5px solid ' + color;
+  fb.textContent = msg;
+  fb.style.display = 'block';
+
+  setTimeout(function() {
+    closeWeighInModal();
+    if (document.getElementById('screen-progress').classList.contains('active')) renderProgress();
+  }, 2200);
 }
+
+// Legacy alias — keep for backward compat with Monday morning prompt
+function showWeighInPrompt() { showWeighInModal(); }
+
 
 // ══════════════════════════════════════════
 // FILM ROOM
@@ -4973,43 +5153,187 @@ function showWeighInPrompt() {
 
 var FR_PROGRAM_START = new Date('2026-03-23');
 
+// ── 15-video verified playlist — organized by theme ──
+// Theme 1: Gap Control (videos 1-4)
+// Theme 2: Defensive Zone Coverage (videos 5-6)
+// Theme 3: Puck Protection & Board Battles (videos 7-9)
+// Theme 4: One-Timer Mechanics (videos 10-12)
+// Theme 5: Offensive Pinching for D (videos 13-14)
+// Theme 6: AI-queued fresh content fills from video 15 onward
 var FR_SEED_VIDEOS = [
-  { id:'frv1', ytId:'mYZEzpFVaL8', title:'Reading the Rush — Gap Control',
-    channel:'Hockey IQ Training', duration:'8 min',
-    recap:'Breaks down how to read the puck carrier\'s speed, close your gap at the right time, and force plays to the outside — without biting on the poke check too early.',
-    focus:['Watch how the defender adjusts his feet when the carrier changes speed','Notice when he gives up the outside vs. forces inside','Track the weak-side forward — where does he go when the rush is on?'],
-    preQ:'When a forward is rushing toward you with speed, what\'s the one thing that usually gets you beat?',
-    postQ:'Did you see anything in how the defender used his edges that you want to try next practice? Be specific.' },
-  { id:'frv2', ytId:'qU4bGAlLmvM', title:'Defensive Zone Coverage — The Rotation',
-    channel:'Coach Jeremy', duration:'11 min',
-    recap:'Walks through the 2-1-2 DZ structure and how all five players rotate when the puck moves wall to wall. Directly maps to what the Avalanche runs.',
-    focus:['Watch the strong-side forward — how far does he press without leaving his lane?','Track where the high D goes every time the puck drops below the dots','Notice how the rotation collapses when someone cheats early'],
-    preQ:'When the puck is deep in your zone on the wall, where do you usually end up standing — and why?',
-    postQ:'Where does the system break down in the video? What causes it, and what would fix it?' },
-  { id:'frv3', ytId:'bU5w7oj1KCE', title:'Puck Protection & Board Battles',
-    channel:'Hockey IQ Training', duration:'7 min',
-    recap:'How elite forwards protect the puck in tight spaces using body positioning and edge work — not just strength. Covers the wall turn and creating separation for a pass.',
-    focus:['Watch the foot position before every protection rep — where is the weight?','Notice how they use the glass as a tool, not just something to get pinned on','Look for when they choose to protect vs. battle through'],
-    preQ:'In board battles, what usually happens when someone tries to out-muscle you? What happens to your feet?',
-    postQ:'Name one specific move or body position from this video you\'re going to try in your next skate.' },
-  { id:'frv4', ytId:'VtHmvX3NQGA', title:'Zone Entry — Drive, Delay & Chip Options',
-    channel:'Coach Jeremy', duration:'9 min',
-    recap:'Covers the three main zone entry options and how the right read depends on the defender\'s feet, not the puck. A half-second hesitation opens every option.',
-    focus:['Each time a forward hits the blue line, call in your head: drive, delay, or chip?','Watch the defender\'s inside edge — which way does it tip the right choice?','Track the weak-side wing — ready to receive or watching the play?'],
-    preQ:'When you\'re carrying the puck toward the blue line, what are you usually looking at — the defender, the puck, or your linemates?',
-    postQ:'Which of the three zone entry options do you use the least? After this video, why do you think that is?' },
-  { id:'frv5', ytId:'kMfkpD1bkzk', title:'One-Timer Mechanics — Left Side',
-    channel:'Hockey IQ Training', duration:'6 min',
-    recap:'Technical breakdown of the one-timer from the left side. Covers foot placement relative to the pass, loading the stick early, and keeping the blade square through release.',
-    focus:['Watch where the shooter\'s front foot is pointing at contact','Notice how early they start loading — it\'s earlier than you think','Track the blade angle through the follow-through — does it close or stay square?'],
-    preQ:'When you receive a cross-ice pass for a one-timer, what do you do with your feet — move them or just swing?',
-    postQ:'What\'s the one mechanical fix from this video that would most improve your shot right now?' },
-  { id:'frv6', ytId:'SRnpuCTqwKo', title:'Hockey Sense — Reading Plays Early',
-    channel:'Hockey IQ Training', duration:'13 min',
-    recap:'How to scan the ice before you receive the puck so your next move is already decided. Three habits that separate smart players from skilled ones.',
-    focus:['Every time a player receives a pass — did they look before or after?','Watch for the player who is NEVER surprised — track what they do between whistles','Count how many times elite players do the pre-scan'],
-    preQ:'When you\'re on the ice without the puck, what are you doing with your eyes?',
-    postQ:'Describe one play where a player\'s pre-scan led directly to something good. Why did the scan matter?' }
+
+  // ── GAP CONTROL ──
+  { id:'frv1', ytId:'eAp5CrhyNeU',
+    title:'Stop Getting Beat Wide — Gap Control Full Lesson',
+    channel:'St. Louis Hockey Training', duration:'~12 min',
+    recap:'Full breakdown of gap control for defensemen — matching speed, stick-length cues for wide drives, and how elite D position their body to force forwards to the outside without getting beat.',
+    focus:[
+      'Watch the stick-length cue every time — how does the defender adjust his reach based on the forward\'s speed?',
+      'Notice when the defender gives ground vs. when he steps up — what triggers each decision?',
+      'Track the defender\'s feet: are they always moving or do they ever get caught flat?'
+    ],
+    preQ:'When a forward is driving wide on you, what do you do with your feet — do you turn and run with them or try to angle them off?',
+    postQ:'What\'s the one gap control cue from this video you could use at your next practice? Be specific about what you\'d do differently.' },
+
+  { id:'frv2', ytId:'me2WaE5IoTk',
+    title:'Defensemen Drill: Gap Control',
+    channel:'Skills Channel', duration:'~6 min',
+    recap:'A focused drill progression on matching speed, stick positioning, and maintaining the right body gap in 1v1 situations. Designed to build the muscle memory that gap control requires.',
+    focus:[
+      'Watch the drill progression — how does the defender\'s starting position change as the speed goes up?',
+      'Notice how the stick is used as an extension, not a weapon — when does it go out and when does it stay in?',
+      'Look at the body angle: is the defender ever square-on, or always angled to force one side?'
+    ],
+    preQ:'In 1v1 situations, do you feel more comfortable making the forward go to the inside or the outside? Why?',
+    postQ:'Could you run this drill yourself in a hallway or on skates? What would you change about how you normally hold your gap after watching this?' },
+
+  { id:'frv3', ytId:'hLwcEyma7L8',
+    title:'Gap Control for Defense in Hockey',
+    channel:'Train 2.0', duration:'~8 min',
+    recap:'Train 2.0 style breakdown of defending like an elite NHLer — the soft-drag backwards mechanic to shrink the gap at the right moment, and how to bait the forward into a predictable move.',
+    focus:[
+      'Watch the "soft drag" backwards movement — it\'s not retreating, it\'s baiting. What triggers the switch from backing up to closing?',
+      'Notice how the defender\'s weight is always slightly forward even when skating backwards — why does this matter?',
+      'Track the puck carrier\'s stick, not his body — when does the defender commit and when does he wait?'
+    ],
+    preQ:'Do you ever feel like you\'re giving too much ground to a forward? When does that usually happen?',
+    postQ:'Describe the "soft drag" mechanic in your own words. How is it different from just backing up straight?' },
+
+  { id:'frv4', ytId:'SJhivbICSZ4',
+    title:'Defensemen Controlling the Gap — Game Clips',
+    channel:'BUJAN Hockey', duration:'~7 min',
+    recap:'Uses real game footage to show exactly what happens when D back in too much vs. when they step up and take away time and space. You can see the difference that one decision makes in each clip.',
+    focus:[
+      'In every clip where the D backs in too much — what happens? What does the forward gain?',
+      'In every clip where the D steps up — what forces the forward into a bad decision?',
+      'Watch the gap at the moment the forward crosses the blue line — one stick length, two stick lengths, or more?'
+    ],
+    preQ:'Have you ever stepped up on a forward and gotten burned? What did you misjudge — their speed, their move, or something else?',
+    postQ:'Pick one clip where the D made the right read. Walk through what he saw, what he did, and what the result was.' },
+
+  // ── DEFENSIVE ZONE COVERAGE ──
+  { id:'frv5', ytId:'6aXsrNrT5RI',
+    title:'Defensive Zone Coverage — Defensemen',
+    channel:'Classic D-Zone Primer', duration:'~10 min',
+    recap:'The foundational D-zone primer for defensemen — responsibilities from net-front out, when to chase into corners, when to stay home, and the partner support rules that prevent breakdowns. Essential baseline for any D.',
+    focus:[
+      'What\'s the rule for when a D goes into the corner? What does his partner do every single time?',
+      'Watch the net-front coverage — where does the weak-side D set up when the puck is behind the net?',
+      'Notice how the two D communicate positioning — there\'s a clear system. What is it?'
+    ],
+    preQ:'When the puck goes deep into the corner on your side, what\'s your first instinct — go for it or hold your position?',
+    postQ:'What\'s the partner support rule when one D chases the corner? Did the video match what you\'ve been taught, or was it different?' },
+
+  { id:'frv6', ytId:'IVImTLlzFv8',
+    title:'Hockey Defensive Zone Positioning & Net Front Coverage',
+    channel:'Modern D-Zone Breakdown', duration:'~9 min',
+    recap:'A modern breakdown of D-zone positioning covering D-specific accountability, net-front box-outs, and shot-lane management. Goes deeper than the basics into the specific reads a D makes when the puck moves from corner to corner.',
+    focus:[
+      'Watch the net-front box-out technique — where are the hands, where is the body, and how does the D stay in contact with the forward without taking a penalty?',
+      'Notice shot-lane management: when the puck is on the half-wall, where does the D position to take away the shooting lane without losing his check?',
+      'Track where the D goes when the puck shifts from one corner to the other — it\'s not just skating across, there\'s a specific path'
+    ],
+    preQ:'When you\'re on the weak side of the zone (puck is on the other D\'s side), where do you typically stand and what are you watching?',
+    postQ:'What\'s one specific positioning detail from this video that you weren\'t doing before? How would you apply it in the Avalanche system?' },
+
+  // ── PUCK PROTECTION & BOARD BATTLES ──
+  { id:'frv7', ytId:'HUcLVezs9Hs',
+    title:'7 Keys to Defending a 1-on-1 Along the Boards',
+    channel:'Train 2.0', duration:'~8 min',
+    recap:'Shows how to angle the puck carrier, get stick on puck, then body, and finish battles along the wall. Seven specific keys covering the full sequence from approach to winning the puck.',
+    focus:[
+      'Watch the approach angle — how does the defender position his body BEFORE contact to already control where the forward can go?',
+      'Notice the stick-first then body sequence — does the order matter? What happens when it\'s reversed?',
+      'Track the defender\'s pivot at the moment of contact — how does he use his shoulder to separate the forward from the puck?'
+    ],
+    preQ:'In board battles, what part of the sequence do you feel least confident in — the approach, the contact, or finishing and getting possession?',
+    postQ:'Which of the 7 keys surprised you most? Which one could you apply immediately at your next practice or skate?' },
+
+  { id:'frv8', ytId:'b1MEOXAJOM0',
+    title:'Master Puck Protection & Win More Board Battles',
+    channel:'RMHS Hockey', duration:'~6 min',
+    recap:'A focused drill showing how to use your hips and shoulders as a wall, pin the puck, and stay low and strong on the boards. This is the physical technique side — not just positioning but actual body mechanics.',
+    focus:[
+      'Watch the hip and shoulder wall technique — where is the center of gravity in every successful protection rep?',
+      'Notice the "pinning" moment — it\'s not pushing, it\'s leaning. What\'s the difference and why does it matter?',
+      'Look at the feet every time: are they active or stationary? Which produces the stronger position?'
+    ],
+    preQ:'When someone pins you on the boards, what do you usually try to do first — spin, push back, or protect and wait for support?',
+    postQ:'Describe the body position for a successful board battle in your own words. Draw it if it helps. What are you going to try next time you\'re pinned?' },
+
+  { id:'frv9', ytId:'P1MFde8NNt8',
+    title:'Pinching With Damon Severson — On the Ice With Dano & Sal',
+    channel:'New Jersey Devils', duration:'~8 min',
+    recap:'NHL defenseman Damon Severson explains his approach to pinching — reading rims, using F3 support, and turning pins into won puck battles on the wall. Real-game thinking from an NHL D-man.',
+    focus:[
+      'Listen to how Severson describes "reading the rim" — what exactly is he watching to decide whether to pin or let it go?',
+      'Notice what he says about F3 coverage — he doesn\'t pinch unless he knows F3 is there. How does he confirm that?',
+      'Watch the actual pinch clips: where are his feet when he makes contact on the wall, and how does he keep his gap tight after committing?'
+    ],
+    preQ:'Have you ever tried to pin a puck on the boards and got caught going the wrong way on the rim? What happened?',
+    postQ:'What\'s Severson\'s #1 rule before he pinches? How would you apply that decision-making process in a game?' },
+
+  // ── ONE-TIMER MECHANICS ──
+  { id:'frv10', ytId:'mVdWzATdtR4',
+    title:'Hockey How-To: One-Timers with Colton Parayko',
+    channel:'St. Louis Blues / NHL', duration:'~5 min',
+    recap:'NHL defenseman Colton Parayko — one of the hardest shooters from the point in the NHL — breaks down his weight transfer, timing cues, and exactly how he sets his feet and hands to load up a point one-timer.',
+    focus:[
+      'Watch where Parayko\'s weight is at the moment the pass arrives — front foot, back foot, or transferring? When does the transfer start?',
+      'Notice his stick position before the puck arrives — is he loading the shot before or after he receives the pass?',
+      'Track his feet: does he shuffle to get in position or does he commit to a spot early? What does this tell you about reading the pass?'
+    ],
+    preQ:'On your one-timer from the left point, do you feel like your weight is moving through the shot or are you just swinging your arms?',
+    postQ:'What\'s one specific thing Parayko does with his feet or weight that you\'re not currently doing? How would you practice that off-ice?' },
+
+  { id:'frv11', ytId:'V2fbhMJvSKE',
+    title:'One-Timer Fundamentals',
+    channel:'Skills Coach', duration:'~7 min',
+    recap:'Mechanics of a standard point one-timer plus a drill sequence initiating from the blue line into different one-timer options. Covers the approach route, loading position, and how to adjust when the pass is off-target.',
+    focus:[
+      'Watch the approach route drill — how does the D walk into the shot vs. waiting for the puck to come to a static position?',
+      'Notice the drill where the pass is deliberately off-target — what adjustments does the shooter make and which adjustments are correct vs. compromising the shot?',
+      'Track the blade angle at contact on every rep — is it square to the target or slightly open? Does it change based on where the pass arrives?'
+    ],
+    preQ:'When you receive a cross-ice pass for a one-timer and the pass is slightly behind you, what do you do — try to reach for it, adjust your feet, or let it go?',
+    postQ:'Which one-timer option from the drill sequence was hardest for the shooter and why? How does that apply to your own shot from the point?' },
+
+  { id:'frv12', ytId:'PPVTQvBRU7s',
+    title:'How to Get a Perfect One Timer in Hockey',
+    channel:'How To Hockey / Coach Jeremy', duration:'~6 min',
+    recap:'Focused on the mental and physical rhythm of the one-timer — destroying the puck with momentum through the shot, and the critical skill of adjusting your route and angle to arrive loaded on time regardless of where the pass comes.',
+    focus:[
+      'Watch the "destroying the puck" concept — what body mechanics produce that feeling vs. a shot that feels weak at contact?',
+      'Notice how the shooter adjusts his route based on where the pass is going — he\'s reading the pass early, not reacting late. When does he commit to his final position?',
+      'Track the follow-through: does it go toward the target or does it wrap around? What does a good follow-through look like vs. a bad one?'
+    ],
+    preQ:'Do you feel like you\'re punching at your one-timer or swinging through it? What\'s the difference in how it feels when you really connect?',
+    postQ:'The video talks about momentum through the shot. Describe what that means in your own words and how you\'d work on it during stickhandling sessions.' },
+
+  // ── OFFENSIVE PINCHING FOR D ──
+  { id:'frv13', ytId:'WTcdEw2CpBY',
+    title:'Defensive Pinch and F3 Positioning Breakdown',
+    channel:'Hockey Analysis', duration:'~9 min',
+    recap:'Uses NHL clips to show how F3 coverage enables aggressive pinches by the defenseman, what "gap tight on the wall" looks like in real game situations, and the risk-reward calculus that elite D make before they commit.',
+    focus:[
+      'Every time a D pinches successfully — where is F3 positioned? How far up the ice is he?',
+      'Every time a D gets caught on a bad pinch — what was F3 doing wrong, or what did the D misread?',
+      'Watch the "gap tight" positioning on the wall — how close is the D to the forward before the puck arrives? What does that closeness prevent?'
+    ],
+    preQ:'In your current system, do you know where F3 is supposed to be when you\'re thinking about pinching? Do you look for him before you commit?',
+    postQ:'Describe the F3 rule for enabling a pinch in your own words. Next game, how will you use this to decide when to be more aggressive at the blue line?' },
+
+  { id:'frv14', ytId:'JCyLgI12ZgA',
+    title:'The Tape Room: Vladislav Gavrikov\'s Defensive Impact',
+    channel:'NHL Now', duration:'~8 min',
+    recap:'A detailed video breakdown of how elite defensive D-men read when to pinch vs. when to hold, which NHL defensemen are the best at blue-line aggression, and the risk-reward of offensive blue-line play — all through game clip analysis.',
+    focus:[
+      'Watch how Gavrikov reads the play before the puck arrives at the blue line — is he already moving or does he wait to see where it goes?',
+      'Notice the clips where he holds the blue line successfully under pressure — what does his body positioning look like vs. when he gets beaten?',
+      'Track his gap management when his team is in the offensive zone — how tight does he stay to the blue line and why?'
+    ],
+    preQ:'When you\'re at the blue line and the play is developing in the offensive zone, what are you watching — the puck, your forward, or the opposing forward trying to break out?',
+    postQ:'What\'s the one defensive impact habit from Gavrikov\'s game that you want to add to yours? How does a LHD apply this from the left point?' }
 ];
 
 var FR_QUEUE = JSON.parse(localStorage.getItem('fr_queue') || 'null') || FR_SEED_VIDEOS.slice();
