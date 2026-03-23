@@ -1368,6 +1368,157 @@ body {
 .hc-warn { background: var(--gold-light); color: var(--gold2); }
 .he-score { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--gold); }
 
+/* ══════════════════════════════════════════
+   FILM ROOM — styles
+   ══════════════════════════════════════════ */
+.fr-queue-bar {
+  display: flex; gap: 8px; padding: 10px 16px;
+  overflow-x: auto; scrollbar-width: none;
+  background: var(--navy2); border-bottom: 0.5px solid var(--navy3);
+}
+.fr-queue-bar::-webkit-scrollbar { display: none; }
+.fr-tab {
+  flex-shrink: 0; padding: 5px 13px; border-radius: 20px;
+  font-size: 11px; font-weight: 700; cursor: pointer;
+  border: 1px solid transparent; text-transform: uppercase; letter-spacing: .4px;
+  font-family: -apple-system, sans-serif; transition: all .15s;
+}
+.fr-tab.active   { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+.fr-tab.watched  { background: transparent; border-color: var(--teal); color: var(--teal); }
+.fr-tab.unlocked { background: var(--navy3); color: rgba(255,255,255,.5); border-color: var(--navy3); }
+.fr-tab.locked   { background: transparent; border-color: var(--navy3); color: var(--navy3); cursor: not-allowed; }
+
+.fr-video-block {
+  background: #000; border-radius: 14px; overflow: hidden;
+  margin-bottom: 14px; border: 0.5px solid var(--navy3); position: relative;
+}
+.fr-yt-thumb {
+  width: 100%; display: block; aspect-ratio: 16/9; object-fit: cover; opacity: .88;
+}
+.fr-yt-fallback {
+  width: 100%; aspect-ratio: 16/9; background: var(--navy2);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+}
+.fr-play-overlay {
+  position: absolute; inset: 0; display: flex;
+  align-items: center; justify-content: center; background: rgba(0,0,0,.32);
+}
+.fr-play-btn {
+  width: 64px; height: 64px; border-radius: 50%; border: none;
+  background: rgba(244,166,35,.95); display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: transform .15s;
+}
+.fr-play-btn:hover { transform: scale(1.06); }
+.fr-open-bar {
+  background: var(--navy2); border-top: 0.5px solid var(--navy3);
+  padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;
+}
+.fr-open-btn {
+  background: var(--gold); color: var(--navy); border: none;
+  font-family: -apple-system, sans-serif; font-size: 13px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .4px;
+  padding: 8px 18px; border-radius: 8px; cursor: pointer; transition: background .15s;
+}
+.fr-open-btn:hover { background: var(--gold2); }
+.fr-open-hint { font-size: 11px; color: rgba(255,255,255,.4); line-height: 1.4; }
+
+.fr-section {
+  background: var(--surface); border: 0.5px solid var(--border);
+  border-radius: 14px; padding: 14px 16px; margin-bottom: 12px;
+}
+.fr-sec-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 8px;
+}
+.fr-video-title {
+  font-family: 'Arial Narrow', Impact, Arial, sans-serif;
+  font-size: 18px; font-weight: 700; color: var(--text);
+  margin-bottom: 3px; line-height: 1.2; letter-spacing: .04em;
+}
+.fr-video-meta { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+.fr-recap { font-size: 13px; color: var(--text); line-height: 1.65; }
+
+.fr-focus-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 8px 0; border-bottom: 0.5px solid var(--border);
+  font-size: 13px; color: var(--text); line-height: 1.4;
+}
+.fr-focus-item:last-child { border-bottom: none; padding-bottom: 0; }
+.fr-bullet {
+  flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--gold-light); border: 1.5px solid var(--gold);
+  color: var(--gold2); font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; margin-top: 1px;
+}
+.fr-question { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 10px; line-height: 1.4; }
+.fr-answer {
+  width: 100%; background: var(--bg); border: 0.5px solid var(--border);
+  border-radius: 10px; color: var(--text); font-family: -apple-system, sans-serif;
+  font-size: 13px; padding: 10px 12px; resize: none; min-height: 80px;
+  line-height: 1.5; outline: none; transition: border-color .15s;
+}
+.fr-answer:focus { border-color: var(--gold); }
+.fr-answer::placeholder { color: var(--muted); }
+.fr-submit {
+  width: 100%; margin-top: 10px; padding: 13px;
+  background: var(--gold); border: none; border-radius: 12px;
+  font-family: -apple-system, sans-serif; font-size: 14px; font-weight: 700;
+  color: var(--navy); cursor: pointer; transition: background .15s;
+}
+.fr-submit:hover { background: var(--gold2); }
+.fr-toast {
+  display: none; align-items: center; gap: 8px; margin-top: 10px;
+  background: var(--teal-light); border: 0.5px solid var(--teal);
+  border-radius: 8px; padding: 9px 13px; font-size: 12px; font-weight: 600; color: var(--teal);
+}
+.fr-toast.show { display: flex; }
+
+.fr-prog-row { display: flex; gap: 5px; margin-bottom: 10px; }
+.fr-pip { flex: 1; height: 4px; border-radius: 3px; background: var(--border); transition: background .3s; }
+.fr-pip.done { background: var(--teal); }
+.fr-pip.curr { background: var(--gold); }
+
+.fr-streak { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+.fr-streak strong { color: var(--gold); font-size: 15px; }
+
+.fr-notif-row {
+  background: var(--navy2); border: 0.5px solid var(--navy3); border-radius: 14px;
+  padding: 12px 16px; display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+}
+.fr-notif-info { flex: 1; }
+.fr-notif-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--gold); margin-bottom: 2px; }
+.fr-notif-desc { font-size: 11px; color: rgba(255,255,255,.5); line-height: 1.4; }
+.fr-toggle-track {
+  width: 40px; height: 22px; border-radius: 11px; background: var(--navy3);
+  border: 1px solid var(--navy3); position: relative; cursor: pointer;
+  flex-shrink: 0; transition: background .2s;
+}
+.fr-toggle-track.on { background: var(--gold); border-color: var(--gold); }
+.fr-toggle-thumb {
+  position: absolute; top: 2px; left: 2px; width: 16px; height: 16px;
+  border-radius: 50%; background: rgba(255,255,255,.5); transition: transform .2s, background .2s;
+}
+.fr-toggle-track.on .fr-toggle-thumb { transform: translateX(18px); background: var(--navy); }
+
+.fr-ai-status {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px; font-size: 13px; color: var(--muted);
+}
+.fr-ai-spin {
+  width: 16px; height: 16px; border: 2px solid var(--border);
+  border-top-color: var(--gold); border-radius: 50%;
+  animation: frSpin .7s linear infinite; flex-shrink: 0;
+}
+@keyframes frSpin { to { transform: rotate(360deg); } }
+
+/* Film Room calendar day dots */
+.cal-day.film-day { background: var(--gold-light) !important; border-color: var(--gold) !important; }
+.cal-day.film-done { background: var(--teal-light) !important; border-color: var(--teal) !important; }
+.fr-cal-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  position: absolute; bottom: 3px; right: 3px;
+}
+
 </style>
 </head>
 <body>
@@ -2056,6 +2207,85 @@ body {
   </div>
 </div>
 
+<!-- ═══════ FILM ROOM ═══════ -->
+<div id="screen-filmroom" class="screen" style="display:none">
+  <div class="page-header">
+    <button class="back-btn" onclick="showScreen('screen-cal')">‹</button>
+    <div class="page-title">FILM ROOM</div>
+    <div style="font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.5px;margin-left:auto;padding-right:4px" id="frSessionBadge">Session 1</div>
+  </div>
+
+  <div class="fr-queue-bar" id="frQueueBar"></div>
+
+  <div style="padding:14px 16px;overflow-y:auto">
+
+    <div class="fr-streak">
+      <span>Film Room streak:</span>
+      <strong id="frStreakNum">0</strong>
+      <span>sessions</span>
+    </div>
+    <div class="fr-prog-row" id="frProgRow"></div>
+
+    <div class="fr-video-block" id="frVideoBlock">
+      <div id="frThumbWrap"></div>
+      <div class="fr-open-bar">
+        <div class="fr-open-hint">Opens in YouTube app<br>Come back here to log your session</div>
+        <button class="fr-open-btn" onclick="frOpenYT()">▶ Watch Now</button>
+      </div>
+    </div>
+
+    <div class="fr-section">
+      <div class="fr-sec-label">📋 Video Recap</div>
+      <div class="fr-video-title" id="frTitle"></div>
+      <div class="fr-video-meta" id="frMeta"></div>
+      <div class="fr-recap" id="frRecap"></div>
+    </div>
+
+    <div class="fr-section">
+      <div class="fr-sec-label">👁 Watch For These</div>
+      <div id="frFocusList"></div>
+    </div>
+
+    <div class="fr-section" id="frPreSection">
+      <div class="fr-sec-label">✏️ Before You Watch — Answer This First</div>
+      <div class="fr-question" id="frPreQ"></div>
+      <textarea class="fr-answer" id="frPreAns" placeholder="Your answer here..." rows="3"></textarea>
+      <button class="fr-submit" onclick="frSubmitPre()">Lock It In — Then Hit Watch ↑</button>
+      <div class="fr-toast" id="frPreToast">✔ Saved — now watch the video, then come back here</div>
+    </div>
+
+    <div class="fr-section" id="frPostSection" style="display:none">
+      <div class="fr-sec-label">📝 After Watching — What Did You See?</div>
+      <div class="fr-question" id="frPostQ"></div>
+      <textarea class="fr-answer" id="frPostAns" placeholder="What did you actually notice? What surprised you?" rows="4"></textarea>
+      <button class="fr-submit" onclick="frSubmitPost()">Complete Session ✓</button>
+      <div class="fr-toast" id="frPostToast">🏒 Session logged — great work, Aleks!</div>
+    </div>
+
+    <div id="frAISection" style="display:none">
+      <div class="fr-section">
+        <div class="fr-sec-label">🤖 Finding Your Next Video</div>
+        <div class="fr-ai-status" id="frAIStatus">
+          <div class="fr-ai-spin"></div>
+          <span>Searching for fresh content matched to your development...</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="fr-notif-row">
+      <span style="font-size:22px;flex-shrink:0">🔔</span>
+      <div class="fr-notif-info">
+        <div class="fr-notif-label">Film Room Reminders</div>
+        <div class="fr-notif-desc" id="frNotifDesc">Get pinged every 3 days when your next session is ready</div>
+      </div>
+      <div class="fr-toggle-track" id="frNotifTrack" onclick="frToggleNotif()">
+        <div class="fr-toggle-thumb"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <!-- ═══════ BOTTOM NAV ═══════ -->
 <!-- PWA Install Banner -->
 <div id="installBanner" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:388px;background:var(--navy2);border:1.5px solid var(--gold);border-radius:16px;padding:14px 16px;z-index:150;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,0.4)">
@@ -2648,14 +2878,24 @@ function renderCalendar() {
     const workout = getWorkoutForDate(dateStr);
     const hasWorkout = workout !== null;
 
-    const el = document.createElement('div');
+    var el = document.createElement('div');
     var cls = 'cal-day';
     if (isToday) cls += ' today';
     if (hasGame) cls += ' game-day';
     else if (hasEvent) cls += ' has-event';
+    // Film Room day highlighting
+    var filmIdx2 = frGetSessionIndexForDate(dateStr);
+    if (filmIdx2 !== null) {
+      var frVid2 = FR_QUEUE[filmIdx2 % FR_QUEUE.length];
+      var frDone2 = frVid2 ? (JSON.parse(localStorage.getItem('fr_done') || '[]')).includes(frVid2.id) : false;
+      cls += frDone2 ? ' film-done' : ' film-day';
+    }
     el.className = cls;
     var dotColor = (workout && workout.key === 'PLYO') ? '#7C3AED' : 'var(--teal)';
     el.innerHTML = d + (hasWorkout ? '<div style="width:4px;height:4px;border-radius:50%;background:' + dotColor + ';position:absolute;top:3px;right:3px"></div>' : '');
+    if (filmIdx2 !== null) {
+      el.innerHTML += '<div class="fr-cal-dot" style="background:' + (frDone2 ? 'var(--teal)' : 'var(--gold)') + '"></div>';
+    }
     el.onclick = (function(ds, wk) {
       return function() { openCalendarDay(ds, wk); };
     })(dateStr, workout);
@@ -2694,6 +2934,13 @@ function openCalendarDay(dateStr, workout) {
   var months2 = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   var days2 = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   var dayLabel = days2[d.getDay()] + ', ' + months2[d.getMonth()] + ' ' + d.getDate();
+
+  // Film Room day — check before workout
+  var filmIdx = frGetSessionIndexForDate(dateStr);
+  if (filmIdx !== null) {
+    frOpenSession(filmIdx);
+    return;
+  }
 
   if (workout) {
     openWorkoutScreen(dateStr, dayLabel, workout);
@@ -4718,6 +4965,260 @@ function showWeighInPrompt() {
   saveJournalEntry(entry);
   updateHomeStats();
   alert('Weight logged: ' + num + ' lbs ✓\n\nTarget: 120+ lbs by September 21.\nKeep fuelling, keep training.');
+}
+
+// ══════════════════════════════════════════
+// FILM ROOM
+// ══════════════════════════════════════════
+
+var FR_PROGRAM_START = new Date('2026-03-23');
+
+var FR_SEED_VIDEOS = [
+  { id:'frv1', ytId:'mYZEzpFVaL8', title:'Reading the Rush — Gap Control',
+    channel:'Hockey IQ Training', duration:'8 min',
+    recap:'Breaks down how to read the puck carrier\'s speed, close your gap at the right time, and force plays to the outside — without biting on the poke check too early.',
+    focus:['Watch how the defender adjusts his feet when the carrier changes speed','Notice when he gives up the outside vs. forces inside','Track the weak-side forward — where does he go when the rush is on?'],
+    preQ:'When a forward is rushing toward you with speed, what\'s the one thing that usually gets you beat?',
+    postQ:'Did you see anything in how the defender used his edges that you want to try next practice? Be specific.' },
+  { id:'frv2', ytId:'qU4bGAlLmvM', title:'Defensive Zone Coverage — The Rotation',
+    channel:'Coach Jeremy', duration:'11 min',
+    recap:'Walks through the 2-1-2 DZ structure and how all five players rotate when the puck moves wall to wall. Directly maps to what the Avalanche runs.',
+    focus:['Watch the strong-side forward — how far does he press without leaving his lane?','Track where the high D goes every time the puck drops below the dots','Notice how the rotation collapses when someone cheats early'],
+    preQ:'When the puck is deep in your zone on the wall, where do you usually end up standing — and why?',
+    postQ:'Where does the system break down in the video? What causes it, and what would fix it?' },
+  { id:'frv3', ytId:'bU5w7oj1KCE', title:'Puck Protection & Board Battles',
+    channel:'Hockey IQ Training', duration:'7 min',
+    recap:'How elite forwards protect the puck in tight spaces using body positioning and edge work — not just strength. Covers the wall turn and creating separation for a pass.',
+    focus:['Watch the foot position before every protection rep — where is the weight?','Notice how they use the glass as a tool, not just something to get pinned on','Look for when they choose to protect vs. battle through'],
+    preQ:'In board battles, what usually happens when someone tries to out-muscle you? What happens to your feet?',
+    postQ:'Name one specific move or body position from this video you\'re going to try in your next skate.' },
+  { id:'frv4', ytId:'VtHmvX3NQGA', title:'Zone Entry — Drive, Delay & Chip Options',
+    channel:'Coach Jeremy', duration:'9 min',
+    recap:'Covers the three main zone entry options and how the right read depends on the defender\'s feet, not the puck. A half-second hesitation opens every option.',
+    focus:['Each time a forward hits the blue line, call in your head: drive, delay, or chip?','Watch the defender\'s inside edge — which way does it tip the right choice?','Track the weak-side wing — ready to receive or watching the play?'],
+    preQ:'When you\'re carrying the puck toward the blue line, what are you usually looking at — the defender, the puck, or your linemates?',
+    postQ:'Which of the three zone entry options do you use the least? After this video, why do you think that is?' },
+  { id:'frv5', ytId:'kMfkpD1bkzk', title:'One-Timer Mechanics — Left Side',
+    channel:'Hockey IQ Training', duration:'6 min',
+    recap:'Technical breakdown of the one-timer from the left side. Covers foot placement relative to the pass, loading the stick early, and keeping the blade square through release.',
+    focus:['Watch where the shooter\'s front foot is pointing at contact','Notice how early they start loading — it\'s earlier than you think','Track the blade angle through the follow-through — does it close or stay square?'],
+    preQ:'When you receive a cross-ice pass for a one-timer, what do you do with your feet — move them or just swing?',
+    postQ:'What\'s the one mechanical fix from this video that would most improve your shot right now?' },
+  { id:'frv6', ytId:'SRnpuCTqwKo', title:'Hockey Sense — Reading Plays Early',
+    channel:'Hockey IQ Training', duration:'13 min',
+    recap:'How to scan the ice before you receive the puck so your next move is already decided. Three habits that separate smart players from skilled ones.',
+    focus:['Every time a player receives a pass — did they look before or after?','Watch for the player who is NEVER surprised — track what they do between whistles','Count how many times elite players do the pre-scan'],
+    preQ:'When you\'re on the ice without the puck, what are you doing with your eyes?',
+    postQ:'Describe one play where a player\'s pre-scan led directly to something good. Why did the scan matter?' }
+];
+
+var FR_QUEUE = JSON.parse(localStorage.getItem('fr_queue') || 'null') || FR_SEED_VIDEOS.slice();
+var FR_DONE  = JSON.parse(localStorage.getItem('fr_done')  || '[]');
+var FR_STREAK = parseInt(localStorage.getItem('fr_streak') || '0');
+var frCurrentVid = null;
+var frNotifOn = false;
+
+// Film Room days start Mar 23 2026, every 3 days
+function frGetFilmDays() {
+  var days = [];
+  for (var i = 0; i < 70; i++) {
+    var d = new Date(FR_PROGRAM_START);
+    d.setDate(FR_PROGRAM_START.getDate() + i * 3);
+    days.push(new Date(d.getFullYear(), d.getMonth(), d.getDate()));
+  }
+  return days;
+}
+
+function frSameDay(a, b) {
+  return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+}
+
+function frGetSessionIndexForDate(dateStr) {
+  var d = new Date(dateStr + 'T12:00:00');
+  var filmDays = frGetFilmDays();
+  for (var i = 0; i < filmDays.length; i++) {
+    if (frSameDay(filmDays[i], d)) return i;
+  }
+  return null;
+}
+
+function frOpenSession(sessionIdx) {
+  var vid = FR_QUEUE[sessionIdx % FR_QUEUE.length];
+  if (!vid) return;
+  frCurrentVid = vid;
+  document.getElementById('frSessionBadge').textContent = 'Session ' + (sessionIdx + 1);
+  document.getElementById('frStreakNum').textContent = FR_STREAK;
+  frRenderQueue(sessionIdx);
+  frRenderProg();
+  frLoadVid(vid);
+  showScreen('screen-filmroom');
+}
+
+function frRenderQueue(activeIdx) {
+  var bar = document.getElementById('frQueueBar');
+  bar.innerHTML = '';
+  var unlocked = Math.min(FR_QUEUE.length, 1 + FR_DONE.length);
+  FR_QUEUE.slice(0, Math.min(FR_QUEUE.length, 12)).forEach(function(v, i) {
+    var btn = document.createElement('button');
+    var done = FR_DONE.includes(v.id);
+    var cls = 'fr-tab';
+    if (i === activeIdx % FR_QUEUE.length) cls += ' active';
+    else if (done) cls += ' watched';
+    else if (i < unlocked) cls += ' unlocked';
+    else cls += ' locked';
+    btn.className = cls;
+    btn.textContent = (done ? '✓ ' : '') + 'Video ' + (i + 1);
+    if (i < unlocked || done) {
+      (function(idx) { btn.onclick = function() { frOpenSession(idx); }; })(i);
+    }
+    bar.appendChild(btn);
+  });
+}
+
+function frRenderProg() {
+  var row = document.getElementById('frProgRow');
+  row.innerHTML = '';
+  FR_QUEUE.slice(0, 10).forEach(function(v, i) {
+    var pip = document.createElement('div');
+    var done = FR_DONE.includes(v.id);
+    pip.className = 'fr-pip' + (done ? ' done' : (frCurrentVid && v.id === frCurrentVid.id ? ' curr' : ''));
+    row.appendChild(pip);
+  });
+}
+
+function frLoadVid(v) {
+  var tw = document.getElementById('frThumbWrap');
+  tw.innerHTML = '<div style="position:relative">' +
+    '<img class="fr-yt-thumb" src="https://img.youtube.com/vi/' + v.ytId + '/hqdefault.jpg" ' +
+    'onerror="this.style.display=\'none\'" />' +
+    '<div class="fr-play-overlay"><button class="fr-play-btn" onclick="frOpenYT()">' +
+    '<svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="6,3 20,12 6,21"/></svg>' +
+    '</button></div></div>';
+  document.getElementById('frTitle').textContent = v.title;
+  document.getElementById('frMeta').textContent = v.channel + ' · ' + v.duration;
+  document.getElementById('frRecap').textContent = v.recap;
+  var fl = document.getElementById('frFocusList');
+  fl.innerHTML = '';
+  (v.focus || []).forEach(function(pt, i) {
+    fl.innerHTML += '<div class="fr-focus-item"><div class="fr-bullet">' + (i+1) + '</div><span>' + pt + '</span></div>';
+  });
+  document.getElementById('frPreQ').textContent = v.preQ || '';
+  document.getElementById('frPostQ').textContent = v.postQ || '';
+  document.getElementById('frPreAns').value = '';
+  document.getElementById('frPostAns').value = '';
+  document.getElementById('frPreToast').classList.remove('show');
+  document.getElementById('frPostToast').classList.remove('show');
+  document.getElementById('frAISection').style.display = 'none';
+  if (FR_DONE.includes(v.id)) {
+    document.getElementById('frPreSection').style.display = 'none';
+    document.getElementById('frPostSection').style.display = '';
+    document.getElementById('frPostToast').classList.add('show');
+  } else {
+    document.getElementById('frPreSection').style.display = '';
+    document.getElementById('frPostSection').style.display = 'none';
+  }
+}
+
+function frOpenYT() {
+  if (frCurrentVid) window.open('https://www.youtube.com/watch?v=' + frCurrentVid.ytId, '_blank');
+}
+
+function frSubmitPre() {
+  var a = document.getElementById('frPreAns').value.trim();
+  if (!a) { document.getElementById('frPreAns').style.borderColor = 'var(--red)'; return; }
+  document.getElementById('frPreAns').style.borderColor = '';
+  document.getElementById('frPreToast').classList.add('show');
+  document.getElementById('frPostSection').style.display = '';
+  document.getElementById('frPostSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function frSubmitPost() {
+  var a = document.getElementById('frPostAns').value.trim();
+  if (!a) { document.getElementById('frPostAns').style.borderColor = 'var(--red)'; return; }
+  document.getElementById('frPostAns').style.borderColor = '';
+  if (frCurrentVid && !FR_DONE.includes(frCurrentVid.id)) {
+    FR_DONE.push(frCurrentVid.id);
+    FR_STREAK++;
+    localStorage.setItem('fr_done', JSON.stringify(FR_DONE));
+    localStorage.setItem('fr_streak', FR_STREAK);
+  }
+  document.getElementById('frPostToast').classList.add('show');
+  document.getElementById('frPreSection').style.display = 'none';
+  document.getElementById('frStreakNum').textContent = FR_STREAK;
+  frRenderProg();
+  frFetchNextVideo();
+  // Refresh calendar to update film day dots
+  if (document.getElementById('screen-cal').classList.contains('active')) renderCalendar();
+}
+
+async function frFetchNextVideo() {
+  document.getElementById('frAISection').style.display = '';
+  document.getElementById('frAIStatus').innerHTML = '<div class="fr-ai-spin"></div><span>Finding your next video...</span>';
+  var completedTitles = FR_DONE.map(function(id) {
+    var v = FR_QUEUE.find(function(q) { return q.id === id; });
+    return v ? v.title : '';
+  }).filter(Boolean).join(', ');
+
+  var prompt = 'You are a junior hockey development coach. Aleks is a 14-year-old left-shot defenceman from Nova Scotia, working toward D1 college hockey. He has already watched: ' + (completedTitles || 'nothing yet') + '. Find him ONE new YouTube video from either the Hockey IQ Training or Coach Jeremy channel that would be the best next step. It must be a real video that actually exists on YouTube. Respond ONLY with a JSON object, no markdown: {"id":"frv' + Date.now() + '","ytId":"YOUTUBE_VIDEO_ID","title":"Short title","channel":"Hockey IQ Training or Coach Jeremy","duration":"X min","recap":"2-3 sentence description","focus":["Point 1","Point 2","Point 3"],"preQ":"Question before watching","postQ":"Question after watching"}';
+
+  try {
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    var data = await res.json();
+    var raw = (data.content || []).map(function(b) { return b.text || ''; }).join('').replace(/```json|```/g,'').trim();
+    var vid = JSON.parse(raw);
+    if (vid && vid.ytId && vid.title) {
+      FR_QUEUE.push(vid);
+      localStorage.setItem('fr_queue', JSON.stringify(FR_QUEUE));
+      document.getElementById('frAIStatus').innerHTML = '<span style="color:var(--teal)">✓ Queued: <strong>' + vid.title + '</strong> — check your calendar in 3 days</span>';
+      frRenderQueue(FR_DONE.length - 1);
+    } else {
+      document.getElementById('frAIStatus').innerHTML = '<span style="color:var(--muted)">Queue will refresh at your next session.</span>';
+    }
+  } catch(e) {
+    document.getElementById('frAIStatus').innerHTML = '<span style="color:var(--muted)">Queue will refresh at next session.</span>';
+  }
+}
+
+function frToggleNotif() {
+  frNotifOn = !frNotifOn;
+  var track = document.getElementById('frNotifTrack');
+  if (frNotifOn) {
+    track.classList.add('on');
+    if ('Notification' in window) {
+      Notification.requestPermission().then(function(p) {
+        document.getElementById('frNotifDesc').textContent = p === 'granted'
+          ? 'On — Aleks gets pinged every 3 days when a new video is ready'
+          : 'Permission denied — enable notifications in your browser settings';
+        if (p === 'granted') frScheduleReminder();
+      });
+    } else {
+      document.getElementById('frNotifDesc').textContent = 'Add to home screen to receive push reminders';
+    }
+  } else {
+    track.classList.remove('on');
+    document.getElementById('frNotifDesc').textContent = 'Get pinged every 3 days when your next session is ready';
+  }
+}
+
+function frScheduleReminder() {
+  if (!frNotifOn) return;
+  setTimeout(function() {
+    if (frNotifOn && Notification.permission === 'granted') {
+      new Notification('🎬 Film Room Time, Aleks!', {
+        body: 'Your next study video is ready. Get in the Film Room.',
+        icon: './icon-192.png'
+      });
+    }
+    frScheduleReminder();
+  }, 3 * 24 * 60 * 60 * 1000);
 }
 
 // ─── INIT ───
