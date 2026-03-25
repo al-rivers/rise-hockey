@@ -2252,6 +2252,18 @@ body {
   </div>
 </div>
 
+<!-- ═══════ DAY SUMMARY SHEET ═══════ -->
+<div id="daySummaryModal" class="overlay" onclick="if(event.target===this)closeDaySummary()">
+  <div class="sheet" style="max-height:80vh">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div class="sheet-title" id="daySummaryTitle">Thursday, March 27</div>
+      <div class="sheet-sub" id="daySummaryCount"></div>
+    </div>
+    <div id="daySummaryItems" style="padding:8px 0 32px"></div>
+  </div>
+</div>
+
 <!-- ═══════ WORKOUT MODAL ═══════ -->
 <div id="workoutModal" class="overlay" onclick="if(event.target===this)closeWorkoutModal()">
   <div class="sheet" style="max-height:90vh">
@@ -2994,29 +3006,84 @@ function openCalendarDay(dateStr, workout) {
   var months2 = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   var days2 = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   var dayLabel = days2[d.getDay()] + ', ' + months2[d.getMonth()] + ' ' + d.getDate();
-
-  // Film Room day — check before workout
+  var isPast = dateStr < localDateStr();
   var filmIdx = frGetSessionIndexForDate(dateStr);
-  if (filmIdx !== null) {
-    frOpenSession(filmIdx);
-    return;
-  }
 
-  if (workout) {
-    openWorkoutScreen(dateStr, dayLabel, workout);
-  } else if (dayEvents.length > 0) {
-    var ev = dayEvents[0];
-    var isPast2 = dateStr < localDateStr();
-    if (ev.type === 'game') {
-      if (isPast2) {
-        document.getElementById('postgameEventName').textContent = ev.name;
-        openGameday('post');
-      } else {
-        document.getElementById('pregameEventName').textContent = ev.name;
-        openGameday('pre');
+  // Count how many distinct things exist on this day
+  var items = [];
+  if (workout) items.push({ kind:'workout', label: workout.template.name, sub:'Phase ' + workout.phase + ' · Week ' + workout.weekNum, icon:'🏋️', action: function(){ openWorkoutScreen(dateStr, dayLabel, workout); } });
+  if (filmIdx !== null) items.push({ kind:'film', label:'Film Room — Session ' + (filmIdx + 1), sub: FR_QUEUE[filmIdx % FR_QUEUE.length] ? FR_QUEUE[filmIdx % FR_QUEUE.length].title : 'Video Study', icon:'🎬', action: function(){ frOpenSession(filmIdx); } });
+  dayEvents.forEach(function(ev) {
+    var isGame = ev.type === 'game';
+    var isPractice = ev.type === 'practice';
+    var icon = isGame ? '🏒' : isPractice ? '⛸️' : '📋';
+    var sub = (ev.time ? formatTime(ev.time) + ' · ' : '') + (ev.location || '');
+    items.push({ kind: ev.type, label: ev.name, sub: sub, icon: icon, action: function() {
+      if (isGame) {
+        if (isPast) { document.getElementById('postgameEventName').textContent = ev.name; openGameday('post'); }
+        else { document.getElementById('pregameEventName').textContent = ev.name; openGameday('pre'); }
       }
+    }});
+  });
+
+  // Nothing on this day
+  if (items.length === 0) return;
+
+  // Exactly one thing — open it directly, no sheet needed
+  if (items.length === 1) { items[0].action(); return; }
+
+  // Multiple things — show the day summary sheet
+  openDaySummary(dayLabel, items);
+}
+
+function openDaySummary(dayLabel, items) {
+  document.getElementById('daySummaryTitle').textContent = dayLabel;
+  document.getElementById('daySummaryCount').textContent = items.length + ' things on this day';
+
+  var typeColors = {
+    workout: { bg:'var(--navy)', text:'rgba(255,255,255,.9)', sub:'rgba(255,255,255,.5)', accent:'var(--gold)' },
+    film:    { bg:'var(--navy2)', text:'rgba(255,255,255,.9)', sub:'rgba(255,255,255,.5)', accent:'#f5a623' },
+    game:    { bg:'var(--gold-light)', text:'var(--navy)', sub:'var(--muted)', accent:'var(--gold)' },
+    practice:{ bg:'var(--teal-light)', text:'var(--navy)', sub:'var(--muted)', accent:'var(--teal)' },
+    other:   { bg:'var(--bg)', text:'var(--text)', sub:'var(--muted)', accent:'var(--muted)' }
+  };
+
+  var html = '';
+  items.forEach(function(item, idx) {
+    var c = typeColors[item.kind] || typeColors.other;
+    html += '<div onclick="handleDaySummaryTap(' + idx + ')" style="' +
+      'margin:0 16px 10px;border-radius:14px;padding:14px 16px;cursor:pointer;' +
+      'background:' + c.bg + ';border:0.5px solid rgba(0,0,0,0.06);' +
+      'display:flex;align-items:center;gap:14px;transition:opacity .12s" ' +
+      'ontouchstart="this.style.opacity=\'.7\'" ontouchend="this.style.opacity=\'1\'">' +
+      '<div style="font-size:26px;flex-shrink:0">' + item.icon + '</div>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:14px;font-weight:700;color:' + c.text + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + item.label + '</div>' +
+        (item.sub ? '<div style="font-size:11px;color:' + c.sub + ';margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + item.sub + '</div>' : '') +
+      '</div>' +
+      '<div style="font-size:18px;color:' + c.accent + ';flex-shrink:0">›</div>' +
+    '</div>';
+  });
+  document.getElementById('daySummaryItems').innerHTML = html;
+
+  // Store actions for tap handler
+  window._daySummaryActions = items.map(function(i) { return i.action; });
+
+  document.getElementById('daySummaryModal').classList.add('open');
+}
+
+function handleDaySummaryTap(idx) {
+  closeDaySummary();
+  // Small delay so sheet closes cleanly before next screen opens
+  setTimeout(function() {
+    if (window._daySummaryActions && window._daySummaryActions[idx]) {
+      window._daySummaryActions[idx]();
     }
-  }
+  }, 180);
+}
+
+function closeDaySummary() {
+  document.getElementById('daySummaryModal').classList.remove('open');
 }
 
 var currentWorkoutDate = null;
